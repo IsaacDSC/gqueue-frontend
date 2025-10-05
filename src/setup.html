@@ -3,16 +3,8 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>GQueue - Server Setup</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script>
-            tailwind.config = {
-                darkMode: "class",
-                theme: {
-                    extend: {},
-                },
-            };
-        </script>
+        <title>GQueue Setup</title>
+        <link href="output.css" rel="stylesheet" />
         <style>
             * {
                 transition:
@@ -56,13 +48,13 @@
                 </div>
 
                 <!-- Setup Form -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl rounded-lg p-6">
+                <div class="dark-modal shadow-xl rounded-lg p-6">
                     <form id="setup-form" class="space-y-6">
                         <!-- Server URL -->
                         <div>
                             <label
                                 for="serverUrl"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                                class="block text-sm font-medium dark-text-muted mb-2"
                             >
                                 Server URL
                             </label>
@@ -73,9 +65,9 @@
                                 value="http://localhost:8080"
                                 placeholder="http://localhost:8080"
                                 required
-                                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                class="w-full px-4 py-3 dark-input rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                             />
-                            <p class="mt-1 text-xs text-gray-500">
+                            <p class="mt-1 text-xs dark-text-muted">
                                 Enter the base URL of your GQueue API server
                             </p>
                         </div>
@@ -84,10 +76,10 @@
                         <div>
                             <label
                                 for="authToken"
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                                class="block text-sm font-medium dark-text-muted mb-2"
                             >
                                 Authentication Token
-                                <span class="text-gray-400">(Optional)</span>
+                                <span class="dark-text-muted">(Optional)</span>
                             </label>
                             <div class="relative">
                                 <input
@@ -95,7 +87,7 @@
                                     id="authToken"
                                     name="authToken"
                                     placeholder="Enter your API token (optional)"
-                                    class="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    class="w-full px-4 py-3 pr-12 dark-input rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                                 />
                                 <button
                                     type="button"
@@ -104,7 +96,7 @@
                                     tabindex="-1"
                                 >
                                     <svg
-                                        class="w-5 h-5 text-gray-400 hover:text-gray-600"
+                                        class="w-5 h-5 dark-text-muted hover:text-gray-600 dark:hover:text-dark-text"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -157,20 +149,21 @@
                         </div>
 
                         <!-- Buttons -->
+                        <!-- Form Actions -->
                         <div class="flex space-x-3">
                             <button
                                 type="button"
                                 id="test-btn"
-                                class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                class="flex-1 py-3 px-4 dark-button rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
                                 Test Connection
                             </button>
                             <button
                                 type="submit"
                                 id="connect-btn"
-                                class="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                class="flex-1 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Connect & Start
+                                Connect
                             </button>
                         </div>
                     </form>

@@ -4,16 +4,8 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>GQueue Dashboard</title>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="output.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            tailwind.config = {
-                darkMode: "class",
-                theme: {
-                    extend: {},
-                },
-            };
-        </script>
         <script>
             // API Configuration
             window.GQUEUE_CONFIG = {
@@ -31,18 +23,14 @@
         </style>
     </head>
     <body
-        class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen"
+        class="bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-dark-text min-h-screen"
     >
         <!-- Header -->
-        <header
-            class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"
-        >
+        <header class="dark-header">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center py-4">
                     <div class="flex items-center space-x-4">
-                        <h1
-                            class="text-2xl font-bold text-gray-900 dark:text-white"
-                        >
+                        <h1 class="text-2xl font-bold dark-text">
                             GQueue Dashboard
                         </h1>
                         <div class="flex items-center space-x-2">
@@ -52,7 +40,7 @@
                             ></div>
                             <span
                                 id="api-status-text"
-                                class="text-sm text-gray-600 dark:text-gray-400"
+                                class="text-sm dark-text-muted"
                                 >Checking API...</span
                             >
                         </div>
@@ -60,7 +48,7 @@
                     <div class="flex items-center space-x-4">
                         <button
                             id="config-btn"
-                            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                            class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium dark-button focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                         >
                             <svg
                                 class="w-4 h-4 mr-2"
@@ -85,7 +73,7 @@
                         </button>
                         <button
                             id="toggle-theme"
-                            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium dark-button focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                             <svg
                                 class="w-4 h-4 mr-2"
@@ -104,7 +92,7 @@
                         </button>
                         <button
                             id="system-theme"
-                            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium dark-button focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                         >
                             <svg
                                 class="w-4 h-4 mr-2"
@@ -129,14 +117,10 @@
         <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Charts Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <!-- RPM Chart -->
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
-                >
-                    <h3
-                        class="text-lg font-semibold text-gray-900 dark:text-white mb-4"
-                    >
+                <div class="dark-card p-6">
+                    <h3 class="text-lg font-semibold dark-text mb-4">
                         RPM (Requests Per Minute)
                     </h3>
                     <div class="h-64">
@@ -148,19 +132,13 @@
                             id="rpmValue"
                             >0</span
                         >
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Current RPM
-                        </p>
+                        <p class="text-sm dark-text-muted">Current RPM</p>
                     </div>
                 </div>
 
                 <!-- LAG Chart -->
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
-                >
-                    <h3
-                        class="text-lg font-semibold text-gray-900 dark:text-white mb-4"
-                    >
+                <div class="dark-card p-6">
+                    <h3 class="text-lg font-semibold dark-text mb-4">
                         LAG (Latency)
                     </h3>
                     <div class="h-64">
@@ -172,19 +150,13 @@
                             id="lagValue"
                             >0ms</span
                         >
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                            Average Latency
-                        </p>
+                        <p class="text-sm dark-text-muted">Average Latency</p>
                     </div>
                 </div>
 
                 <!-- Dead Letter Queue RPM Chart -->
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
-                >
-                    <h3
-                        class="text-lg font-semibold text-gray-900 dark:text-white mb-4"
-                    >
+                <div class="dark-card p-6">
+                    <h3 class="text-lg font-semibold dark-text mb-4">
                         DLQ RPM
                     </h3>
                     <div class="h-64">
@@ -196,7 +168,7 @@
                             id="dlqValue"
                             >0</span
                         >
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                        <p class="text-sm dark-text-muted">
                             Dead Letter Queue RPM
                         </p>
                     </div>
@@ -205,23 +177,17 @@
 
             <!-- Action Section -->
             <div class="mb-8">
-                <div
-                    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
-                >
+                <div class="dark-card p-6">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h3
-                                class="text-lg font-semibold text-gray-900 dark:text-white"
-                            >
+                            <h3 class="text-lg font-semibold dark-text">
                                 Event Management
                             </h3>
-                            <p class="text-gray-600 dark:text-gray-400">
+                            <p class="dark-text-muted">
                                 Create and manage queue events
                             </p>
                             <div class="mt-2">
-                                <span
-                                    class="text-xs text-gray-500 dark:text-gray-400"
-                                >
+                                <span class="text-xs dark-text-muted">
                                     API:
                                     <span id="api-status" class="font-mono"
                                         >Checking...</span
@@ -253,35 +219,31 @@
             </div>
 
             <!-- Events List -->
-            <div
-                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
-            >
+            <div class="dark-card">
                 <div
-                    class="px-6 py-4 border-b border-gray-200 dark:border-gray-700"
+                    class="px-6 py-4 border-b border-gray-200 dark:border-dark-border"
                 >
                     <div class="flex justify-between items-center">
                         <div>
-                            <h3
-                                class="text-lg font-semibold text-gray-900 dark:text-white"
-                            >
+                            <h3 class="text-lg font-semibold dark-text">
                                 Registered Events
                             </h3>
                             <div class="flex items-center space-x-4 mt-1">
                                 <span
                                     id="events-source"
-                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                    class="text-xs dark-text-muted"
                                 >
                                     Source: Loading...
                                 </span>
                                 <span
                                     id="events-count"
-                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                    class="text-xs dark-text-muted"
                                 >
                                     Count: 0
                                 </span>
                                 <span
                                     id="last-updated"
-                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                    class="text-xs dark-text-muted"
                                 >
                                     Last updated: Never
                                 </span>
@@ -290,7 +252,7 @@
                         <div class="flex items-center space-x-2">
                             <button
                                 id="auto-refresh-toggle"
-                                class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md dark-button focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                             >
                                 <svg
                                     class="w-3 h-3 mr-1"
@@ -309,7 +271,7 @@
                             </button>
                             <button
                                 id="refresh-events-btn"
-                                class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium dark-button focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                             >
                                 <svg
                                     class="w-4 h-4 mr-2"
@@ -328,7 +290,7 @@
                             </button>
                             <button
                                 id="debug-btn"
-                                class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md dark-button focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                                 title="Debug loading issues"
                             >
                                 <svg
@@ -355,7 +317,7 @@
                     </div>
                     <div
                         id="no-events"
-                        class="text-center py-8 text-gray-500 dark:text-gray-400"
+                        class="text-center py-8 dark-text-muted"
                     >
                         <svg
                             class="w-12 h-12 mx-auto mb-4 opacity-50"
@@ -382,24 +344,22 @@
         <!-- Add Event Modal -->
         <div
             id="event-modal"
-            class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden"
+            class="modal fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-black dark:bg-opacity-70 overflow-y-auto h-full w-full z-50 hidden"
         >
             <div class="flex items-center justify-center min-h-screen p-4">
                 <div
-                    class="relative w-full max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto"
+                    class="relative w-full max-w-4xl dark-modal rounded-lg shadow-xl max-h-[90vh] overflow-y-auto"
                 >
                     <div class="p-6">
                         <div
-                            class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-gray-800 z-10 border-b border-gray-200 dark:border-gray-700 pb-4"
+                            class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-dark-surface z-10 border-b border-gray-200 dark:border-dark-border pb-4"
                         >
-                            <h3
-                                class="text-xl font-semibold text-gray-900 dark:text-white"
-                            >
+                            <h3 class="text-xl font-semibold dark-text">
                                 Add New Event
                             </h3>
                             <button
                                 id="close-modal"
-                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-dark-muted p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-md transition-colors"
                             >
                                 <svg
                                     class="w-5 h-5"
@@ -420,11 +380,9 @@
                         <form id="event-form" class="space-y-6">
                             <!-- API Settings -->
                             <div
-                                class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                                class="p-4 bg-gray-50 dark:bg-dark-surface rounded-lg"
                             >
-                                <h4
-                                    class="text-md font-medium text-gray-900 dark:text-white mb-3"
-                                >
+                                <h4 class="text-md font-medium dark-text mb-3">
                                     API Configuration
                                 </h4>
                                 <div
@@ -433,7 +391,7 @@
                                     <div>
                                         <label
                                             for="api-url"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            class="block text-sm font-medium dark-text-muted"
                                             >API Base URL</label
                                         >
                                         <input
@@ -441,13 +399,13 @@
                                             id="api-url"
                                             name="api_url"
                                             value="http://localhost:8080"
-                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                         />
                                     </div>
                                     <div>
                                         <label
                                             for="api-timeout"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            class="block text-sm font-medium dark-text-muted"
                                             >Timeout (ms)</label
                                         >
                                         <input
@@ -457,14 +415,14 @@
                                             value="10000"
                                             min="1000"
                                             max="60000"
-                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                         />
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     id="test-connection-btn"
-                                    class="mt-3 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    class="mt-3 inline-flex items-center px-3 py-2 rounded-md text-sm font-medium dark-button focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 >
                                     <svg
                                         class="w-4 h-4 mr-2"
@@ -485,9 +443,7 @@
 
                             <!-- Event Details -->
                             <div>
-                                <h4
-                                    class="text-md font-medium text-gray-900 dark:text-white mb-4"
-                                >
+                                <h4 class="text-md font-medium dark-text mb-4">
                                     Event Details
                                 </h4>
                                 <div
@@ -496,7 +452,7 @@
                                     <div>
                                         <label
                                             for="event-name"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            class="block text-sm font-medium dark-text-muted"
                                             >Event Name</label
                                         >
                                         <input
@@ -504,13 +460,13 @@
                                             id="event-name"
                                             name="name"
                                             required
-                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                         />
                                     </div>
                                     <div>
                                         <label
                                             for="service-name"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            class="block text-sm font-medium dark-text-muted"
                                             >Service Name</label
                                         >
                                         <input
@@ -518,13 +474,13 @@
                                             id="service-name"
                                             name="service_name"
                                             required
-                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                         />
                                     </div>
                                     <div>
                                         <label
                                             for="repo-url"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            class="block text-sm font-medium dark-text-muted"
                                             >Repository URL</label
                                         >
                                         <input
@@ -532,13 +488,13 @@
                                             id="repo-url"
                                             name="repo_url"
                                             required
-                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                         />
                                     </div>
                                     <div>
                                         <label
                                             for="team-owner"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            class="block text-sm font-medium dark-text-muted"
                                             >Team Owner</label
                                         >
                                         <input
@@ -546,7 +502,7 @@
                                             id="team-owner"
                                             name="team_owner"
                                             required
-                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                         />
                                     </div>
                                 </div>
@@ -554,11 +510,9 @@
 
                             <!-- Trigger Configuration -->
                             <div
-                                class="border-t border-gray-200 dark:border-gray-700 pt-6"
+                                class="border-t border-gray-200 dark:border-dark-border pt-6"
                             >
-                                <h4
-                                    class="text-md font-medium text-gray-900 dark:text-white mb-4"
-                                >
+                                <h4 class="text-md font-medium dark-text mb-4">
                                     Trigger Configuration
                                 </h4>
                                 <div
@@ -567,7 +521,7 @@
                                     <div>
                                         <label
                                             for="trigger-service-name"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            class="block text-sm font-medium dark-text-muted"
                                             >Trigger Service Name</label
                                         >
                                         <input
@@ -575,20 +529,20 @@
                                             id="trigger-service-name"
                                             name="trigger_service_name"
                                             required
-                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                         />
                                     </div>
                                     <div>
                                         <label
                                             for="trigger-type"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            class="block text-sm font-medium dark-text-muted"
                                             >Type</label
                                         >
                                         <select
                                             id="trigger-type"
                                             name="trigger_type"
                                             required
-                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                         >
                                             <option value="persistent">
                                                 persistent
@@ -601,7 +555,7 @@
                                     <div>
                                         <label
                                             for="trigger-host"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            class="block text-sm font-medium dark-text-muted"
                                             >Host</label
                                         >
                                         <input
@@ -609,13 +563,13 @@
                                             id="trigger-host"
                                             name="trigger_host"
                                             required
-                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                         />
                                     </div>
                                     <div>
                                         <label
                                             for="trigger-path"
-                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            class="block text-sm font-medium dark-text-muted"
                                             >Path</label
                                         >
                                         <input
@@ -623,7 +577,7 @@
                                             id="trigger-path"
                                             name="trigger_path"
                                             required
-                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                         />
                                     </div>
                                 </div>
@@ -631,7 +585,7 @@
                                 <!-- Options -->
                                 <div class="mt-6">
                                     <h5
-                                        class="text-sm font-medium text-gray-900 dark:text-white mb-4"
+                                        class="text-sm font-medium dark-text mb-4"
                                     >
                                         Options
                                     </h5>
@@ -641,14 +595,14 @@
                                         <div>
                                             <label
                                                 for="queue-type"
-                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                                class="block text-sm font-medium dark-text-muted"
                                                 >Queue Type</label
                                             >
                                             <select
                                                 id="queue-type"
                                                 name="queue_type"
                                                 required
-                                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                             >
                                                 <option value="external.medium">
                                                     external.medium
@@ -667,7 +621,7 @@
                                         <div>
                                             <label
                                                 for="max-retries"
-                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                                class="block text-sm font-medium dark-text-muted"
                                                 >Max Retries</label
                                             >
                                             <input
@@ -678,13 +632,13 @@
                                                 max="10"
                                                 value="3"
                                                 required
-                                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                             />
                                         </div>
                                         <div>
                                             <label
                                                 for="retention"
-                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                                class="block text-sm font-medium dark-text-muted"
                                                 >Retention</label
                                             >
                                             <input
@@ -693,13 +647,13 @@
                                                 name="retention"
                                                 value="168h"
                                                 required
-                                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                             />
                                         </div>
                                         <div>
                                             <label
                                                 for="unique-ttl"
-                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                                class="block text-sm font-medium dark-text-muted"
                                                 >Unique TTL</label
                                             >
                                             <input
@@ -708,7 +662,7 @@
                                                 name="unique_ttl"
                                                 value="60s"
                                                 required
-                                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
                                             />
                                         </div>
                                     </div>
@@ -717,12 +671,12 @@
 
                             <!-- Form Actions -->
                             <div
-                                class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800 mt-6"
+                                class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-dark-border sticky bottom-0 bg-white dark:bg-dark-surface mt-6"
                             >
                                 <button
                                     type="button"
                                     id="cancel-btn"
-                                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                    class="px-4 py-2 rounded-md text-sm font-medium dark-button focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                                 >
                                     Cancel
                                 </button>
