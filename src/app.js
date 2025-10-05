@@ -385,6 +385,12 @@ class Dashboard {
         e.key === "Escape" &&
         !document.getElementById("event-modal").classList.contains("hidden")
       ) {
+        // Don't close modal if user is typing in JSON textarea
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.id === "triggers-json") {
+          console.log("Escape pressed in JSON textarea - not closing modal");
+          return;
+        }
         this.closeModal();
       }
     });
@@ -415,12 +421,460 @@ class Dashboard {
     document.getElementById("config-btn").addEventListener("click", () => {
       this.openServerConfig();
     });
+
+    // Trigger configuration event listeners
+    this.bindTriggerEvents();
+    console.log("Trigger events bound successfully");
+  }
+
+  // Trigger Management
+  bindTriggerEvents() {
+    // Toggle between form and JSON mode
+    document
+      .getElementById("trigger-mode-toggle")
+      .addEventListener("click", () => {
+        console.log("Toggle trigger mode clicked");
+        this.toggleTriggerMode();
+      });
+
+    // Add new trigger
+    document.getElementById("add-trigger-btn").addEventListener("click", () => {
+      console.log("Add trigger button clicked");
+      this.addNewTrigger();
+    });
+
+    // JSON validation
+    document
+      .getElementById("validate-json-btn")
+      .addEventListener("click", () => {
+        this.validateTriggersJson();
+      });
+
+    // Import from form to JSON
+    document
+      .getElementById("import-from-form-btn")
+      .addEventListener("click", () => {
+        this.importFormToJson();
+      });
+
+    // Paste JSON from clipboard
+    document.getElementById("paste-json-btn").addEventListener("click", () => {
+      this.pasteJsonFromClipboard();
+    });
+
+    // Clear JSON textarea
+    document.getElementById("clear-json-btn").addEventListener("click", () => {
+      this.clearJsonTextarea();
+    });
+
+    // Debug paste functionality
+    document.getElementById("debug-paste-btn").addEventListener("click", () => {
+      this.debugPasteFunctionality();
+    });
+
+    // Bind remove buttons for existing triggers
+    this.bindRemoveTriggerButtons();
+
+    // Add specific paste support for JSON textarea
+    this.bindJsonTextareaEvents();
+  }
+
+  toggleTriggerMode() {
+    const formMode = document.getElementById("triggers-form-mode");
+    const jsonMode = document.getElementById("triggers-json-mode");
+    const toggle = document.getElementById("trigger-mode-toggle");
+    const dot = document.getElementById("trigger-mode-toggle-dot");
+
+    if (jsonMode.classList.contains("hidden")) {
+      console.log("Switching to JSON mode");
+      // Switch to JSON mode
+      formMode.classList.add("hidden");
+      jsonMode.classList.remove("hidden");
+      toggle.classList.add("bg-blue-600");
+      toggle.classList.remove("bg-gray-200", "dark:bg-gray-600");
+      dot.classList.add("translate-x-5");
+      dot.classList.remove("translate-x-1");
+
+      // Import current form data to JSON
+      this.importFormToJson();
+    } else {
+      console.log("Switching to form mode");
+      // Switch to form mode
+      jsonMode.classList.add("hidden");
+      formMode.classList.remove("hidden");
+      toggle.classList.remove("bg-blue-600");
+      toggle.classList.add("bg-gray-200", "dark:bg-gray-600");
+      dot.classList.remove("translate-x-5");
+      dot.classList.add("translate-x-1");
+    }
+  }
+
+  addNewTrigger() {
+    const container = document.getElementById("triggers-container");
+    const triggerCount = container.children.length + 1;
+    console.log(`Adding trigger #${triggerCount}`);
+
+    const triggerHtml = `
+      <div class="trigger-item border border-gray-200 dark:border-dark-border rounded-lg p-4 mb-4">
+        <div class="flex items-center justify-between mb-4">
+          <h5 class="text-sm font-medium dark-text">Trigger #${triggerCount}</h5>
+          <button type="button" class="remove-trigger-btn text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" title="Remove trigger">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium dark-text-muted">Trigger Service Name</label>
+            <input type="text" name="trigger_service_name" required class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium dark-text-muted">Type</label>
+            <select name="trigger_type" required class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3">
+              <option value="persistent">persistent</option>
+              <option value="temporary">temporary</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium dark-text-muted">Host</label>
+            <input type="url" name="trigger_host" required class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium dark-text-muted">Path</label>
+            <input type="text" name="trigger_path" required class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3" />
+          </div>
+        </div>
+        <div class="mt-4">
+          <h6 class="text-xs font-medium dark-text-muted mb-3">Options</h6>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium dark-text-muted">Queue Type</label>
+              <select name="queue_type" required class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3">
+                <option value="external.medium">external.medium</option>
+                <option value="external.high">external.high</option>
+                <option value="external.low">external.low</option>
+                <option value="internal.medium">internal.medium</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium dark-text-muted">Max Retries</label>
+              <input type="number" name="max_retries" min="0" max="10" value="3" required class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium dark-text-muted">Retention</label>
+              <input type="text" name="retention" value="168h" required class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium dark-text-muted">Unique TTL</label>
+              <input type="text" name="unique_ttl" value="60s" required class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3" />
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.insertAdjacentHTML("beforeend", triggerHtml);
+    this.updateTriggerNumbers();
+    this.bindRemoveTriggerButtons();
+  }
+
+  bindRemoveTriggerButtons() {
+    const removeButtons = document.querySelectorAll(".remove-trigger-btn");
+    removeButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        this.removeTrigger(e.target.closest(".trigger-item"));
+      });
+    });
+  }
+
+  removeTrigger(triggerElement) {
+    const container = document.getElementById("triggers-container");
+    if (container.children.length > 1) {
+      triggerElement.remove();
+      this.updateTriggerNumbers();
+    }
+  }
+
+  updateTriggerNumbers() {
+    const container = document.getElementById("triggers-container");
+    const triggers = container.children;
+
+    Array.from(triggers).forEach((trigger, index) => {
+      const title = trigger.querySelector("h5");
+      title.textContent = `Trigger #${index + 1}`;
+
+      const removeBtn = trigger.querySelector(".remove-trigger-btn");
+      if (triggers.length === 1) {
+        removeBtn.classList.add("hidden");
+      } else {
+        removeBtn.classList.remove("hidden");
+      }
+    });
+  }
+
+  validateTriggersJson() {
+    const jsonTextarea = document.getElementById("triggers-json");
+    const messageDiv = document.getElementById("json-validation-message");
+
+    try {
+      const triggers = JSON.parse(jsonTextarea.value);
+
+      if (!Array.isArray(triggers)) {
+        throw new Error("JSON must be an array of triggers");
+      }
+
+      triggers.forEach((trigger, index) => {
+        if (!trigger.service_name)
+          throw new Error(`Trigger ${index + 1}: service_name is required`);
+        if (!trigger.type)
+          throw new Error(`Trigger ${index + 1}: type is required`);
+        if (!trigger.host)
+          throw new Error(`Trigger ${index + 1}: host is required`);
+        if (!trigger.path)
+          throw new Error(`Trigger ${index + 1}: path is required`);
+      });
+
+      messageDiv.className = "mt-2 text-sm text-green-600 dark:text-green-400";
+      messageDiv.textContent = "✓ Valid JSON format";
+      messageDiv.classList.remove("hidden");
+
+      setTimeout(() => messageDiv.classList.add("hidden"), 3000);
+    } catch (error) {
+      messageDiv.className = "mt-2 text-sm text-red-600 dark:text-red-400";
+      messageDiv.textContent = `❌ ${error.message}`;
+      messageDiv.classList.remove("hidden");
+    }
+  }
+
+  importFormToJson() {
+    const triggers = this.getTriggersFromForm();
+    const jsonTextarea = document.getElementById("triggers-json");
+    jsonTextarea.value = JSON.stringify(triggers, null, 2);
+  }
+
+  getTriggersFromForm() {
+    const triggerItems = document.querySelectorAll(".trigger-item");
+    const triggers = [];
+
+    triggerItems.forEach((item) => {
+      const trigger = {
+        service_name: item.querySelector('input[name="trigger_service_name"]')
+          .value,
+        type: item.querySelector('select[name="trigger_type"]').value,
+        host: item.querySelector('input[name="trigger_host"]').value,
+        path: item.querySelector('input[name="trigger_path"]').value,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        option: {
+          queue_type: item.querySelector('select[name="queue_type"]').value,
+          max_retries: parseInt(
+            item.querySelector('input[name="max_retries"]').value,
+          ),
+          retention: item.querySelector('input[name="retention"]').value,
+          unique_ttl: item.querySelector('input[name="unique_ttl"]').value,
+        },
+      };
+
+      if (trigger.service_name && trigger.host && trigger.path) {
+        triggers.push(trigger);
+      }
+    });
+
+    return triggers;
+  }
+
+  bindJsonTextareaEvents() {
+    const jsonTextarea = document.getElementById("triggers-json");
+
+    // Ensure paste events work properly
+    jsonTextarea.addEventListener("paste", (e) => {
+      console.log("Paste event detected in JSON textarea");
+      // Allow the default paste behavior
+      setTimeout(() => {
+        console.log(
+          "JSON textarea content after paste:",
+          jsonTextarea.value.length,
+          "characters",
+        );
+      }, 10);
+    });
+
+    // Add keyboard shortcuts
+    jsonTextarea.addEventListener("keydown", (e) => {
+      // Ctrl+V or Cmd+V for paste (usually handled by browser, but ensure it's not blocked)
+      if ((e.ctrlKey || e.metaKey) && e.key === "v") {
+        console.log("Paste shortcut detected");
+        // Don't prevent default - let browser handle paste
+        return true;
+      }
+
+      // Ctrl+A or Cmd+A for select all
+      if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+        console.log("Select all shortcut detected");
+        return true;
+      }
+    });
+
+    // Focus and blur events for debugging
+    jsonTextarea.addEventListener("focus", () => {
+      console.log("JSON textarea focused");
+    });
+
+    jsonTextarea.addEventListener("blur", () => {
+      console.log("JSON textarea blurred");
+    });
+  }
+
+  // Paste JSON from clipboard using Clipboard API
+  async pasteJsonFromClipboard() {
+    const jsonTextarea = document.getElementById("triggers-json");
+    const messageDiv = document.getElementById("json-validation-message");
+
+    try {
+      // Check if Clipboard API is available
+      if (!navigator.clipboard) {
+        throw new Error(
+          "Clipboard API not available. Use Ctrl+V or Cmd+V to paste.",
+        );
+      }
+
+      // Read text from clipboard
+      const clipboardText = await navigator.clipboard.readText();
+      console.log("Read from clipboard:", clipboardText.length, "characters");
+
+      if (!clipboardText.trim()) {
+        throw new Error("Clipboard is empty or contains no text.");
+      }
+
+      // Set the text in the textarea
+      jsonTextarea.value = clipboardText;
+      jsonTextarea.focus();
+
+      // Show success message
+      messageDiv.className = "mt-2 text-sm text-green-600 dark:text-green-400";
+      messageDiv.textContent = "✓ JSON pasted from clipboard successfully";
+      messageDiv.classList.remove("hidden");
+
+      // Auto-validate after paste
+      setTimeout(() => {
+        this.validateTriggersJson();
+      }, 100);
+
+      console.log("JSON pasted successfully");
+    } catch (error) {
+      console.error("Paste error:", error);
+
+      // Show error message
+      messageDiv.className =
+        "mt-2 text-sm text-orange-600 dark:text-orange-400";
+      messageDiv.textContent = `📋 ${error.message}`;
+      messageDiv.classList.remove("hidden");
+
+      // Focus on textarea for manual paste
+      jsonTextarea.focus();
+
+      setTimeout(() => messageDiv.classList.add("hidden"), 5000);
+    }
+  }
+
+  // Clear JSON textarea
+  clearJsonTextarea() {
+    const jsonTextarea = document.getElementById("triggers-json");
+    const messageDiv = document.getElementById("json-validation-message");
+
+    jsonTextarea.value = "";
+    jsonTextarea.focus();
+
+    // Hide any validation messages
+    messageDiv.classList.add("hidden");
+
+    console.log("JSON textarea cleared");
+  }
+
+  // Debug paste functionality
+  debugPasteFunctionality() {
+    const jsonTextarea = document.getElementById("triggers-json");
+    const messageDiv = document.getElementById("json-validation-message");
+
+    console.log("🔧 Starting paste functionality debug...");
+
+    // Test 1: Check textarea properties
+    console.log("1. Textarea properties:");
+    console.log("  - ID:", jsonTextarea.id);
+    console.log("  - Focused:", document.activeElement === jsonTextarea);
+    console.log("  - Disabled:", jsonTextarea.disabled);
+    console.log("  - ReadOnly:", jsonTextarea.readOnly);
+    console.log("  - TabIndex:", jsonTextarea.tabIndex);
+
+    // Test 2: Check Clipboard API
+    console.log("2. Clipboard API support:");
+    console.log("  - Available:", !!navigator.clipboard);
+    console.log("  - HTTPS context:", location.protocol === "https:");
+    console.log("  - Secure context:", window.isSecureContext);
+
+    // Test 3: Test programmatic value setting
+    console.log("3. Testing programmatic value setting...");
+    const originalValue = jsonTextarea.value;
+    const testJson = '[{"test": "debug"}]';
+    jsonTextarea.value = testJson;
+    const setValue = jsonTextarea.value === testJson;
+    console.log("  - Can set value:", setValue);
+    jsonTextarea.value = originalValue; // Restore
+
+    // Test 4: Test focus
+    console.log("4. Testing focus...");
+    jsonTextarea.focus();
+    const canFocus = document.activeElement === jsonTextarea;
+    console.log("  - Can focus:", canFocus);
+
+    // Test 5: Check event listeners
+    console.log("5. Event listeners check:");
+    if (typeof getEventListeners === "function") {
+      const listeners = getEventListeners(jsonTextarea);
+      console.log("  - Event listeners:", listeners);
+    } else {
+      console.log("  - getEventListeners not available (Chrome DevTools only)");
+    }
+
+    // Test 6: Simulate paste event
+    console.log("6. Simulating paste event...");
+    try {
+      const pasteEvent = new ClipboardEvent("paste", {
+        bubbles: true,
+        cancelable: true,
+        clipboardData: new DataTransfer(),
+      });
+      pasteEvent.clipboardData.setData("text/plain", testJson);
+      const eventDispatched = jsonTextarea.dispatchEvent(pasteEvent);
+      console.log("  - Paste event dispatched:", eventDispatched);
+      console.log("  - Value after paste simulation:", jsonTextarea.value);
+    } catch (error) {
+      console.log("  - Paste simulation error:", error.message);
+    }
+
+    // Show debug summary
+    messageDiv.className = "mt-2 text-sm text-purple-600 dark:text-purple-400";
+    messageDiv.textContent = "🔧 Debug completed - check console for details";
+    messageDiv.classList.remove("hidden");
+
+    setTimeout(() => {
+      messageDiv.classList.add("hidden");
+    }, 5000);
+
+    console.log("🔧 Debug completed. Try pasting now with Ctrl+V/Cmd+V");
   }
 
   // Modal Management
   openModal() {
     document.getElementById("event-modal").classList.remove("hidden");
     document.body.style.overflow = "hidden";
+
+    // Initialize trigger functionality
+    this.updateTriggerNumbers();
+    this.bindRemoveTriggerButtons();
+
     // Focus on the first input field
     setTimeout(() => {
       const firstInput = document.querySelector("#event-modal input");
@@ -442,11 +896,29 @@ class Dashboard {
 
   resetForm() {
     document.getElementById("event-form").reset();
-    document.getElementById("trigger-type").value = "persistent";
-    document.getElementById("queue-type").value = "external.medium";
-    document.getElementById("max-retries").value = "3";
-    document.getElementById("retention").value = "168h";
-    document.getElementById("unique-ttl").value = "60s";
+
+    // Reset to single trigger
+    const container = document.getElementById("triggers-container");
+    const firstTrigger = container.firstElementChild;
+    container.innerHTML = "";
+    container.appendChild(firstTrigger);
+
+    // Reset form mode
+    const formMode = document.getElementById("triggers-form-mode");
+    const jsonMode = document.getElementById("triggers-json-mode");
+    const toggle = document.getElementById("trigger-mode-toggle");
+    const dot = document.getElementById("trigger-mode-toggle-dot");
+
+    jsonMode.classList.add("hidden");
+    formMode.classList.remove("hidden");
+    toggle.classList.remove("bg-blue-600");
+    toggle.classList.add("bg-gray-200", "dark:bg-gray-600");
+    dot.classList.remove("translate-x-5");
+    dot.classList.add("translate-x-1");
+
+    // Clear JSON textarea
+    document.getElementById("triggers-json").value = "";
+
     document.getElementById("api-url").value = this.apiBaseUrl;
     document.getElementById("api-timeout").value = this.apiTimeout;
   }
@@ -459,28 +931,47 @@ class Dashboard {
     this.apiBaseUrl = formData.get("api_url") || this.apiBaseUrl;
     this.apiTimeout = parseInt(formData.get("api_timeout")) || this.apiTimeout;
 
+    let triggers;
+
+    // Check if in JSON mode
+    const jsonMode = document.getElementById("triggers-json-mode");
+    if (!jsonMode.classList.contains("hidden")) {
+      console.log("Using JSON mode for form submission");
+      // Use JSON data
+      try {
+        const jsonValue = document.getElementById("triggers-json").value.trim();
+        if (jsonValue) {
+          triggers = JSON.parse(jsonValue);
+          console.log("Parsed triggers from JSON:", triggers);
+        } else {
+          triggers = this.getTriggersFromForm();
+          console.log("JSON empty, using form data:", triggers);
+        }
+      } catch (error) {
+        console.error("JSON parsing error:", error);
+        alert(
+          "Invalid JSON format in triggers configuration. Please validate your JSON first.",
+        );
+        return;
+      }
+    } else {
+      console.log("Using form mode for submission");
+      // Use form data
+      triggers = this.getTriggersFromForm();
+      console.log("Extracted triggers from form:", triggers);
+    }
+
+    if (triggers.length === 0) {
+      alert("At least one trigger is required.");
+      return;
+    }
+
     const event = {
       name: formData.get("name"),
       service_name: formData.get("service_name"),
       repo_url: formData.get("repo_url"),
       team_owner: formData.get("team_owner"),
-      triggers: [
-        {
-          service_name: formData.get("trigger_service_name"),
-          type: formData.get("trigger_type"),
-          host: formData.get("trigger_host"),
-          path: formData.get("trigger_path"),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          option: {
-            queue_type: formData.get("queue_type"),
-            max_retries: parseInt(formData.get("max_retries")),
-            retention: formData.get("retention"),
-            unique_ttl: formData.get("unique_ttl"),
-          },
-        },
-      ],
+      triggers: triggers,
     };
 
     await this.createEventOnBackend(event);
@@ -549,7 +1040,6 @@ class Dashboard {
   // Event Management
   addEventToLocal(event) {
     this.events.push(event);
-    this.saveEvents();
     this.renderEventsList();
   }
 
@@ -561,15 +1051,36 @@ class Dashboard {
   deleteEvent(index) {
     if (confirm("Are you sure you want to delete this event?")) {
       this.events.splice(index, 1);
-      this.saveEvents();
       this.renderEventsList();
       // Note: In a full implementation, this would call a DELETE API endpoint
       // For now, we're just removing from local storage
     }
   }
 
-  saveEvents() {
-    localStorage.setItem("gqueue-events", JSON.stringify(this.events));
+  async saveEvents() {
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/api/v1/event/consumer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(this.events),
+      });
+
+      if (response.status >= 200 && response.status < 300) {
+        console.log("Events saved to server successfully");
+        this.showMessage("Events saved to server successfully", "success");
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Error saving events to server:", error);
+      this.showMessage(
+        "Failed to save events to server. Data saved locally.",
+        "error",
+      );
+    }
   }
 
   getQueueTypeColor(queueType) {
@@ -1276,7 +1787,6 @@ class Dashboard {
       if (transformedEvents && transformedEvents.length > 0) {
         this.events = transformedEvents;
         this.lastDataSource = "API";
-        this.saveEvents(); // Save to local storage as backup
         this.showSuccessMessage(
           `Loaded ${transformedEvents.length} events from API`,
         );

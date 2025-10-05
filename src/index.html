@@ -512,160 +512,341 @@
                             <div
                                 class="border-t border-gray-200 dark:border-dark-border pt-6"
                             >
-                                <h4 class="text-md font-medium dark-text mb-4">
-                                    Trigger Configuration
-                                </h4>
                                 <div
-                                    class="grid grid-cols-1 md:grid-cols-2 gap-6"
+                                    class="flex items-center justify-between mb-4"
                                 >
-                                    <div>
-                                        <label
-                                            for="trigger-service-name"
-                                            class="block text-sm font-medium dark-text-muted"
-                                            >Trigger Service Name</label
+                                    <h4 class="text-md font-medium dark-text">
+                                        Trigger Configuration
+                                    </h4>
+                                    <div class="flex items-center space-x-2">
+                                        <label class="text-sm dark-text-muted"
+                                            >Form</label
                                         >
-                                        <input
-                                            type="text"
-                                            id="trigger-service-name"
-                                            name="trigger_service_name"
-                                            required
-                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            for="trigger-type"
-                                            class="block text-sm font-medium dark-text-muted"
-                                            >Type</label
+                                        <button
+                                            type="button"
+                                            id="trigger-mode-toggle"
+                                            class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                         >
-                                        <select
-                                            id="trigger-type"
-                                            name="trigger_type"
-                                            required
-                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
+                                            <span
+                                                id="trigger-mode-toggle-dot"
+                                                class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"
+                                            ></span>
+                                        </button>
+                                        <label class="text-sm dark-text-muted"
+                                            >JSON</label
                                         >
-                                            <option value="persistent">
-                                                persistent
-                                            </option>
-                                            <option value="temporary">
-                                                temporary
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label
-                                            for="trigger-host"
-                                            class="block text-sm font-medium dark-text-muted"
-                                            >Host</label
-                                        >
-                                        <input
-                                            type="url"
-                                            id="trigger-host"
-                                            name="trigger_host"
-                                            required
-                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            for="trigger-path"
-                                            class="block text-sm font-medium dark-text-muted"
-                                            >Path</label
-                                        >
-                                        <input
-                                            type="text"
-                                            id="trigger-path"
-                                            name="trigger_path"
-                                            required
-                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
-                                        />
                                     </div>
                                 </div>
 
-                                <!-- Options -->
-                                <div class="mt-6">
-                                    <h5
-                                        class="text-sm font-medium dark-text mb-4"
-                                    >
-                                        Options
-                                    </h5>
-                                    <div
-                                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-                                    >
-                                        <div>
-                                            <label
-                                                for="queue-type"
-                                                class="block text-sm font-medium dark-text-muted"
-                                                >Queue Type</label
+                                <!-- Form Mode -->
+                                <div id="triggers-form-mode">
+                                    <div id="triggers-container">
+                                        <!-- Trigger 1 (default) -->
+                                        <div
+                                            class="trigger-item border border-gray-200 dark:border-dark-border rounded-lg p-4 mb-4"
+                                        >
+                                            <div
+                                                class="flex items-center justify-between mb-4"
                                             >
-                                            <select
-                                                id="queue-type"
-                                                name="queue_type"
-                                                required
-                                                class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
+                                                <h5
+                                                    class="text-sm font-medium dark-text"
+                                                >
+                                                    Trigger #1
+                                                </h5>
+                                                <button
+                                                    type="button"
+                                                    class="remove-trigger-btn text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hidden"
+                                                    title="Remove trigger"
+                                                >
+                                                    <svg
+                                                        class="w-5 h-5"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                        ></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div
+                                                class="grid grid-cols-1 md:grid-cols-2 gap-4"
                                             >
-                                                <option value="external.medium">
-                                                    external.medium
-                                                </option>
-                                                <option value="external.high">
-                                                    external.high
-                                                </option>
-                                                <option value="external.low">
-                                                    external.low
-                                                </option>
-                                                <option value="internal.medium">
-                                                    internal.medium
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label
-                                                for="max-retries"
-                                                class="block text-sm font-medium dark-text-muted"
-                                                >Max Retries</label
-                                            >
-                                            <input
-                                                type="number"
-                                                id="max-retries"
-                                                name="max_retries"
-                                                min="0"
-                                                max="10"
-                                                value="3"
-                                                required
-                                                class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label
-                                                for="retention"
-                                                class="block text-sm font-medium dark-text-muted"
-                                                >Retention</label
-                                            >
-                                            <input
-                                                type="text"
-                                                id="retention"
-                                                name="retention"
-                                                value="168h"
-                                                required
-                                                class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label
-                                                for="unique-ttl"
-                                                class="block text-sm font-medium dark-text-muted"
-                                                >Unique TTL</label
-                                            >
-                                            <input
-                                                type="text"
-                                                id="unique-ttl"
-                                                name="unique_ttl"
-                                                value="60s"
-                                                required
-                                                class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
-                                            />
+                                                <div>
+                                                    <label
+                                                        class="block text-sm font-medium dark-text-muted"
+                                                        >Trigger Service
+                                                        Name</label
+                                                    >
+                                                    <input
+                                                        type="text"
+                                                        name="trigger_service_name"
+                                                        required
+                                                        class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        class="block text-sm font-medium dark-text-muted"
+                                                        >Type</label
+                                                    >
+                                                    <select
+                                                        name="trigger_type"
+                                                        required
+                                                        class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
+                                                    >
+                                                        <option
+                                                            value="persistent"
+                                                        >
+                                                            persistent
+                                                        </option>
+                                                        <option
+                                                            value="temporary"
+                                                        >
+                                                            temporary
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        class="block text-sm font-medium dark-text-muted"
+                                                        >Host</label
+                                                    >
+                                                    <input
+                                                        type="url"
+                                                        name="trigger_host"
+                                                        required
+                                                        class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        class="block text-sm font-medium dark-text-muted"
+                                                        >Path</label
+                                                    >
+                                                    <input
+                                                        type="text"
+                                                        name="trigger_path"
+                                                        required
+                                                        class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <!-- Options -->
+                                            <div class="mt-4">
+                                                <h6
+                                                    class="text-xs font-medium dark-text-muted mb-3"
+                                                >
+                                                    Options
+                                                </h6>
+                                                <div
+                                                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+                                                >
+                                                    <div>
+                                                        <label
+                                                            class="block text-sm font-medium dark-text-muted"
+                                                            >Queue Type</label
+                                                        >
+                                                        <select
+                                                            name="queue_type"
+                                                            required
+                                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
+                                                        >
+                                                            <option
+                                                                value="external.medium"
+                                                            >
+                                                                external.medium
+                                                            </option>
+                                                            <option
+                                                                value="external.high"
+                                                            >
+                                                                external.high
+                                                            </option>
+                                                            <option
+                                                                value="external.low"
+                                                            >
+                                                                external.low
+                                                            </option>
+                                                            <option
+                                                                value="internal.medium"
+                                                            >
+                                                                internal.medium
+                                                            </option>
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label
+                                                            class="block text-sm font-medium dark-text-muted"
+                                                            >Max Retries</label
+                                                        >
+                                                        <input
+                                                            type="number"
+                                                            name="max_retries"
+                                                            min="0"
+                                                            max="10"
+                                                            value="3"
+                                                            required
+                                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label
+                                                            class="block text-sm font-medium dark-text-muted"
+                                                            >Retention</label
+                                                        >
+                                                        <input
+                                                            type="text"
+                                                            name="retention"
+                                                            value="168h"
+                                                            required
+                                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label
+                                                            class="block text-sm font-medium dark-text-muted"
+                                                            >Unique TTL</label
+                                                        >
+                                                        <input
+                                                            type="text"
+                                                            name="unique_ttl"
+                                                            value="60s"
+                                                            required
+                                                            class="mt-1 block w-full dark-input rounded-md shadow-sm py-2 px-3"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+
+                                    <!-- Add Trigger Button -->
+                                    <div class="mb-4">
+                                        <button
+                                            type="button"
+                                            id="add-trigger-btn"
+                                            class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                        >
+                                            <svg
+                                                class="w-4 h-4 mr-2"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                                ></path>
+                                            </svg>
+                                            Add Another Trigger
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- JSON Mode -->
+                                <div id="triggers-json-mode" class="hidden">
+                                    <div class="mb-4">
+                                        <label
+                                            class="block text-sm font-medium dark-text-muted mb-2"
+                                        >
+                                            Triggers JSON Configuration
+                                        </label>
+                                        <p
+                                            class="text-xs text-gray-500 dark:text-gray-400 mb-3"
+                                        >
+                                            Paste or edit the triggers
+                                            configuration in JSON format. This
+                                            will override form data.
+                                        </p>
+                                        <div class="relative">
+                                            <textarea
+                                                id="triggers-json"
+                                                rows="12"
+                                                spellcheck="false"
+                                                autocomplete="off"
+                                                autocorrect="off"
+                                                autocapitalize="off"
+                                                tabindex="0"
+                                                style="
+                                                    resize: vertical;
+                                                    min-height: 300px;
+                                                "
+                                                class="block w-full dark-input rounded-md shadow-sm py-2 px-3 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder='[
+  {
+    "service_name": "example-service",
+    "type": "persistent",
+    "host": "http://localhost:3333",
+    "path": "/wq/example/event",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "option": {
+      "queue_type": "external.medium",
+      "max_retries": 3,
+      "retention": "168h",
+      "unique_ttl": "60s"
+    }
+  }
+]'
+                                            ></textarea>
+                                            <div
+                                                class="absolute top-2 right-2 text-xs text-gray-400 dark:text-gray-500 pointer-events-none"
+                                            >
+                                                Use Ctrl+V (Cmd+V) to paste or
+                                                click "📋 Paste JSON"
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button
+                                            type="button"
+                                            id="validate-json-btn"
+                                            class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            Validate JSON
+                                        </button>
+                                        <button
+                                            type="button"
+                                            id="paste-json-btn"
+                                            class="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        >
+                                            📋 Paste JSON
+                                        </button>
+                                        <button
+                                            type="button"
+                                            id="clear-json-btn"
+                                            class="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        >
+                                            🗑️ Clear
+                                        </button>
+                                        <button
+                                            type="button"
+                                            id="import-from-form-btn"
+                                            class="px-3 py-1 text-xs bg-gray-600 hover:bg-gray-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                        >
+                                            Import from Form
+                                        </button>
+                                        <button
+                                            type="button"
+                                            id="debug-paste-btn"
+                                            class="px-3 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            title="Run paste functionality tests"
+                                        >
+                                            🔧 Debug Paste
+                                        </button>
+                                    </div>
+                                    <div
+                                        id="json-validation-message"
+                                        class="mt-2 text-sm hidden"
+                                    ></div>
                                 </div>
                             </div>
 
