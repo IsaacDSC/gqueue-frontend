@@ -16,8 +16,14 @@ function createWindow() {
     show: false,
   });
 
+  // Check if configuration exists, if not start with setup
+  const configExists = require("fs").existsSync(
+    path.join(__dirname, "../config.json"),
+  );
+  const startPage = configExists ? "index.html" : "setup.html";
+
   // Load the app
-  mainWindow.loadFile(path.join(__dirname, "index.html"));
+  mainWindow.loadFile(path.join(__dirname, startPage));
 
   // Show window when ready
   mainWindow.once("ready-to-show", () => {

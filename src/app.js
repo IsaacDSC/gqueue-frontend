@@ -5,21 +5,63 @@ class Dashboard {
     this.isElectron = window.electronAPI !== undefined;
     this.events = JSON.parse(localStorage.getItem("gqueue-events") || "[]");
     this.charts = {};
-    this.apiBaseUrl =
-      window.GQUEUE_CONFIG?.apiBaseUrl || "http://localhost:8080";
-    this.apiTimeout = window.GQUEUE_CONFIG?.apiTimeout || 10000;
-    this.autoRefreshInterval =
-      window.GQUEUE_CONFIG?.autoRefreshInterval || 60000; // 1 minute default
-    this.autoRefreshEnabled =
-      window.GQUEUE_CONFIG?.autoRefreshEnabled !== false;
+
+    // Check for saved configuration first
+    console.log("Dashboard constructor called");
+
+    // Ensure DOM is ready before proceeding
+    if (
+      document.readyState !== "complete" &&
+      document.readyState !== "interactive"
+    ) {
+      console.log("DOM not ready, waiting...");
+      document.addEventListener("DOMContentLoaded", () => {
+        this.checkAndLoadConfig();
+      });
+      return;
+    }
+
+    this.checkAndLoadConfig();
+  }
+
+  checkAndLoadConfig() {
+    console.log("Checking configuration...");
+
+    // Check for saved configuration
+    const savedConfig = this.loadSavedConfig();
+    console.log("Loaded config:", savedConfig);
+
+    if (!savedConfig || !savedConfig.serverUrl) {
+      console.log("No valid config found, redirecting to setup");
+      this.redirectToSetup();
+      return;
+    }
+
+    // Apply configuration
+    this.apiBaseUrl = savedConfig.serverUrl || "http://localhost:8080";
+    this.apiTimeout = savedConfig.apiTimeout || 10000;
+    this.authToken = savedConfig.authToken || null;
+    this.autoRefreshInterval = savedConfig.autoRefreshInterval || 60000;
+    this.autoRefreshEnabled = savedConfig.autoRefreshEnabled !== false;
     this.autoRefreshTimer = null;
+
+    console.log("Dashboard initializing with config:", {
+      apiBaseUrl: this.apiBaseUrl,
+      hasToken: !!this.authToken,
+    });
 
     // Add sample events if none exist
     if (this.events.length === 0) {
       this.addSampleEvents();
     }
 
-    this.init();
+    // Initialize the dashboard
+    try {
+      this.init();
+    } catch (error) {
+      console.error("Dashboard initialization failed:", error);
+      this.showInitializationError(error);
+    }
   }
 
   init() {
@@ -27,14 +69,37 @@ class Dashboard {
     this.initializeCharts();
     this.bindEvents();
 
+    // Ensure all DOM elements exist before proceeding
+    const requiredElements = [
+      "events-list",
+      "no-events",
+      "rpmChart",
+      "lagChart",
+      "dlqChart",
+    ];
+    const missingElements = requiredElements.filter(
+      (id) => !document.getElementById(id),
+    );
+
+    if (missingElements.length > 0) {
+      console.warn(`Missing DOM elements: ${missingElements.join(", ")}`);
+      // Continue anyway but log the issue
+    }
+
     // Initialize with local events first
+    console.log("Loading local events...");
     this.loadLocalEvents();
     this.renderEventsList();
 
+    // Initialize UI status
+    this.updateEventsInfo(this.events.length, this.lastDataSource || "Local");
+
     // Then try to load from API after a short delay
+    console.log("Scheduling API load...");
     setTimeout(() => {
+      console.log("Starting API load...");
       this.loadEventsFromAPI();
-    }, 500);
+    }, 1000);
 
     this.startDataSimulation();
     this.checkApiStatus();
@@ -105,9 +170,24 @@ class Dashboard {
 
   // Charts Initialization
   initializeCharts() {
-    this.initRPMChart();
-    this.initLagChart();
-    this.initDLQChart();
+    try {
+      console.log("Initializing charts...");
+
+      // Check if Chart.js is available
+      if (typeof Chart === "undefined") {
+        console.error("Chart.js is not loaded");
+        return;
+      }
+
+      this.initRPMChart();
+      this.initLagChart();
+      this.initDLQChart();
+
+      console.log("Charts initialized successfully");
+    } catch (error) {
+      console.error("Chart initialization failed:", error);
+      this.showChartsError();
+    }
   }
 
   initRPMChart() {
@@ -331,6 +411,10 @@ class Dashboard {
     document.getElementById("debug-btn").addEventListener("click", () => {
       this.debugLoadingIssues();
     });
+
+    document.getElementById("config-btn").addEventListener("click", () => {
+      this.openServerConfig();
+    });
   }
 
   // Modal Management
@@ -417,12 +501,18 @@ class Dashboard {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.apiTimeout);
 
+      const headers = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+
+      if (this.authToken) {
+        headers["Authorization"] = `Bearer ${this.authToken}`;
+      }
+
       const response = await fetch(`${this.apiBaseUrl}/api/v1/event/consumer`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: headers,
         body: JSON.stringify(eventData),
         signal: controller.signal,
       });
@@ -915,11 +1005,17 @@ class Dashboard {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
+      const headers = {
+        Accept: "application/json",
+      };
+
+      if (this.authToken) {
+        headers["Authorization"] = `Bearer ${this.authToken}`;
+      }
+
       const response = await fetch(`${this.apiBaseUrl}/api/v1/ping`, {
         method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
+        headers: headers,
         signal: controller.signal,
       });
 
@@ -1015,11 +1111,17 @@ class Dashboard {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), testTimeout);
 
+      const headers = {
+        Accept: "application/json",
+      };
+
+      if (this.authToken) {
+        headers["Authorization"] = `Bearer ${this.authToken}`;
+      }
+
       const response = await fetch(`${testUrl}/api/v1/ping`, {
         method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
+        headers: headers,
         signal: controller.signal,
       });
 
@@ -1069,6 +1171,38 @@ class Dashboard {
     }, 30000);
   }
 
+  // Configuration management
+  loadSavedConfig() {
+    const config = localStorage.getItem("gqueue-config");
+    console.log("Raw config from localStorage:", config);
+
+    if (config) {
+      try {
+        const parsed = JSON.parse(config);
+        console.log("Parsed config:", parsed);
+
+        // Validate required fields
+        if (!parsed.serverUrl) {
+          console.warn("Config missing serverUrl, treating as invalid");
+          localStorage.removeItem("gqueue-config");
+          return null;
+        }
+
+        return parsed;
+      } catch (e) {
+        console.warn("Invalid saved config:", e);
+        localStorage.removeItem("gqueue-config");
+      }
+    }
+    console.log("No valid config found");
+    return null;
+  }
+
+  redirectToSetup() {
+    console.log("No configuration found, redirecting to setup...");
+    window.location.href = "setup.html";
+  }
+
   // API Integration for fetching events
   async loadEventsFromAPI() {
     console.log("Starting to load events from API...");
@@ -1108,11 +1242,17 @@ class Dashboard {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.apiTimeout);
 
+      const headers = {
+        Accept: "application/json",
+      };
+
+      if (this.authToken) {
+        headers["Authorization"] = `Bearer ${this.authToken}`;
+      }
+
       const response = await fetch(`${this.apiBaseUrl}/api/v1/events`, {
         method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
+        headers: headers,
         signal: controller.signal,
       });
 
@@ -1323,6 +1463,51 @@ class Dashboard {
     this.showMessage("Loading stopped manually", "info");
   }
 
+  // Server configuration management
+  openServerConfig() {
+    if (
+      confirm(
+        "Do you want to reconfigure the server connection? This will redirect you to the setup page.",
+      )
+    ) {
+      window.location.href = "setup.html";
+    }
+  }
+
+  // Show initialization error
+  showInitializationError(error) {
+    document.body.innerHTML = `
+      <div class="min-h-screen flex items-center justify-center bg-gray-50">
+        <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+          <div class="text-center">
+            <h1 class="text-xl font-bold text-red-600 mb-4">Initialization Error</h1>
+            <p class="text-gray-700 mb-4">The dashboard failed to initialize:</p>
+            <p class="text-sm text-gray-600 bg-gray-100 p-3 rounded mb-4">${error.message}</p>
+            <button onclick="window.location.href='setup.html'"
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              Go to Setup
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Show charts error
+  showChartsError() {
+    const chartsContainers = ["rpmChart", "lagChart", "dlqChart"];
+    chartsContainers.forEach((id) => {
+      const container = document.getElementById(id);
+      if (container) {
+        container.innerHTML = `
+          <div class="flex items-center justify-center h-full">
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Chart unavailable</p>
+          </div>
+        `;
+      }
+    });
+  }
+
   // Auto refresh functionality
   startAutoRefresh() {
     if (!this.autoRefreshEnabled) return;
@@ -1403,5 +1588,40 @@ class Dashboard {
 // Initialize dashboard when DOM is loaded
 let dashboard;
 document.addEventListener("DOMContentLoaded", () => {
-  dashboard = new Dashboard();
+  console.log("DOM loaded, initializing dashboard...");
+
+  // Add a small delay to ensure all resources are loaded
+  setTimeout(() => {
+    try {
+      dashboard = new Dashboard();
+      console.log("Dashboard created successfully");
+    } catch (error) {
+      console.error("Failed to create dashboard:", error);
+
+      // Show fallback error page
+      document.body.innerHTML = `
+        <div class="min-h-screen flex items-center justify-center bg-gray-50">
+          <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
+            <h1 class="text-xl font-bold text-red-600 mb-4">Dashboard Error</h1>
+            <p class="text-gray-700 mb-4">Failed to initialize dashboard:</p>
+            <p class="text-sm text-gray-600 bg-gray-100 p-3 rounded mb-4">${error.message}</p>
+            <div class="space-y-2">
+              <button onclick="localStorage.clear(); location.reload();"
+                      class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Clear Data & Reload
+              </button>
+              <button onclick="window.location.href='setup.html';"
+                      class="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                Go to Setup
+              </button>
+              <button onclick="window.location.href='minimal-dashboard.html';"
+                      class="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                Debug Mode
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }, 100);
 });
