@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>GQueue Dashboard</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {},
+                },
+            };
+        </script>
+        <script>
+            // API Configuration
+            window.GQUEUE_CONFIG = {
+                apiBaseUrl: "http://localhost:8080",
+                apiTimeout: 10000,
+            };
+        </script>
+        <style>
+            * {
+                transition:
+                    background-color 0.3s ease,
+                    color 0.3s ease,
+                    border-color 0.3s ease;
+            }
+        </style>
+    </head>
+    <body
+        class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen"
+    >
+        <!-- Header -->
+        <header
+            class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"
+        >
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-4">
+                        <h1
+                            class="text-2xl font-bold text-gray-900 dark:text-white"
+                        >
+                            GQueue Dashboard
+                        </h1>
+                        <div class="flex items-center space-x-2">
+                            <div
+                                id="api-status-indicator"
+                                class="w-3 h-3 rounded-full bg-yellow-500"
+                            ></div>
+                            <span
+                                id="api-status-text"
+                                class="text-sm text-gray-600 dark:text-gray-400"
+                                >Checking API...</span
+                            >
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button
+                            id="toggle-theme"
+                            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            <svg
+                                class="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                                ></path>
+                            </svg>
+                            Theme
+                        </button>
+                        <button
+                            id="system-theme"
+                            class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        >
+                            <svg
+                                class="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                ></path>
+                            </svg>
+                            System
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- RPM Chart -->
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                >
+                    <h3
+                        class="text-lg font-semibold text-gray-900 dark:text-white mb-4"
+                    >
+                        RPM (Requests Per Minute)
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="rpmChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span
+                            class="text-2xl font-bold text-blue-600 dark:text-blue-400"
+                            id="rpmValue"
+                            >0</span
+                        >
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            Current RPM
+                        </p>
+                    </div>
+                </div>
+
+                <!-- LAG Chart -->
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                >
+                    <h3
+                        class="text-lg font-semibold text-gray-900 dark:text-white mb-4"
+                    >
+                        LAG (Latency)
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="lagChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span
+                            class="text-2xl font-bold text-yellow-600 dark:text-yellow-400"
+                            id="lagValue"
+                            >0ms</span
+                        >
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            Average Latency
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Dead Letter Queue RPM Chart -->
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                >
+                    <h3
+                        class="text-lg font-semibold text-gray-900 dark:text-white mb-4"
+                    >
+                        DLQ RPM
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="dlqChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span
+                            class="text-2xl font-bold text-red-600 dark:text-red-400"
+                            id="dlqValue"
+                            >0</span
+                        >
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            Dead Letter Queue RPM
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Section -->
+            <div class="mb-8">
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                >
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3
+                                class="text-lg font-semibold text-gray-900 dark:text-white"
+                            >
+                                Event Management
+                            </h3>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                Create and manage queue events
+                            </p>
+                            <div class="mt-2">
+                                <span
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                    API:
+                                    <span id="api-status" class="font-mono"
+                                        >Checking...</span
+                                    >
+                                </span>
+                            </div>
+                        </div>
+                        <button
+                            id="add-event-btn"
+                            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                        >
+                            <svg
+                                class="w-5 h-5 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                ></path>
+                            </svg>
+                            Add Event
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Events List -->
+            <div
+                class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+            >
+                <div
+                    class="px-6 py-4 border-b border-gray-200 dark:border-gray-700"
+                >
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3
+                                class="text-lg font-semibold text-gray-900 dark:text-white"
+                            >
+                                Registered Events
+                            </h3>
+                            <div class="flex items-center space-x-4 mt-1">
+                                <span
+                                    id="events-source"
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                    Source: Loading...
+                                </span>
+                                <span
+                                    id="events-count"
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                    Count: 0
+                                </span>
+                                <span
+                                    id="last-updated"
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                    Last updated: Never
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button
+                                id="auto-refresh-toggle"
+                                class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                            >
+                                <svg
+                                    class="w-3 h-3 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    ></path>
+                                </svg>
+                                Auto
+                            </button>
+                            <button
+                                id="refresh-events-btn"
+                                class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                            >
+                                <svg
+                                    class="w-4 h-4 mr-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    ></path>
+                                </svg>
+                                Refresh
+                            </button>
+                            <button
+                                id="debug-btn"
+                                class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                title="Debug loading issues"
+                            >
+                                <svg
+                                    class="w-3 h-3 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    ></path>
+                                </svg>
+                                Debug
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div id="events-list" class="space-y-4">
+                        <!-- Events will be populated here -->
+                    </div>
+                    <div
+                        id="no-events"
+                        class="text-center py-8 text-gray-500 dark:text-gray-400"
+                    >
+                        <svg
+                            class="w-12 h-12 mx-auto mb-4 opacity-50"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                            ></path>
+                        </svg>
+                        <p>No events registered yet</p>
+                        <p class="text-sm">
+                            Click "Add Event" to create your first event
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Add Event Modal -->
+        <div
+            id="event-modal"
+            class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden"
+        >
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div
+                    class="relative w-full max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto"
+                >
+                    <div class="p-6">
+                        <div
+                            class="flex justify-between items-center mb-6 sticky top-0 bg-white dark:bg-gray-800 z-10 border-b border-gray-200 dark:border-gray-700 pb-4"
+                        >
+                            <h3
+                                class="text-xl font-semibold text-gray-900 dark:text-white"
+                            >
+                                Add New Event
+                            </h3>
+                            <button
+                                id="close-modal"
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                            >
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    ></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <form id="event-form" class="space-y-6">
+                            <!-- API Settings -->
+                            <div
+                                class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                            >
+                                <h4
+                                    class="text-md font-medium text-gray-900 dark:text-white mb-3"
+                                >
+                                    API Configuration
+                                </h4>
+                                <div
+                                    class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                >
+                                    <div>
+                                        <label
+                                            for="api-url"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            >API Base URL</label
+                                        >
+                                        <input
+                                            type="url"
+                                            id="api-url"
+                                            name="api_url"
+                                            value="http://localhost:8080"
+                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label
+                                            for="api-timeout"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            >Timeout (ms)</label
+                                        >
+                                        <input
+                                            type="number"
+                                            id="api-timeout"
+                                            name="api_timeout"
+                                            value="10000"
+                                            min="1000"
+                                            max="60000"
+                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    id="test-connection-btn"
+                                    class="mt-3 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                >
+                                    <svg
+                                        class="w-4 h-4 mr-2"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                                        ></path>
+                                    </svg>
+                                    Test Connection
+                                </button>
+                            </div>
+
+                            <!-- Event Details -->
+                            <div>
+                                <h4
+                                    class="text-md font-medium text-gray-900 dark:text-white mb-4"
+                                >
+                                    Event Details
+                                </h4>
+                                <div
+                                    class="grid grid-cols-1 md:grid-cols-2 gap-6"
+                                >
+                                    <div>
+                                        <label
+                                            for="event-name"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            >Event Name</label
+                                        >
+                                        <input
+                                            type="text"
+                                            id="event-name"
+                                            name="name"
+                                            required
+                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label
+                                            for="service-name"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            >Service Name</label
+                                        >
+                                        <input
+                                            type="text"
+                                            id="service-name"
+                                            name="service_name"
+                                            required
+                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label
+                                            for="repo-url"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            >Repository URL</label
+                                        >
+                                        <input
+                                            type="url"
+                                            id="repo-url"
+                                            name="repo_url"
+                                            required
+                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label
+                                            for="team-owner"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            >Team Owner</label
+                                        >
+                                        <input
+                                            type="text"
+                                            id="team-owner"
+                                            name="team_owner"
+                                            required
+                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Trigger Configuration -->
+                            <div
+                                class="border-t border-gray-200 dark:border-gray-700 pt-6"
+                            >
+                                <h4
+                                    class="text-md font-medium text-gray-900 dark:text-white mb-4"
+                                >
+                                    Trigger Configuration
+                                </h4>
+                                <div
+                                    class="grid grid-cols-1 md:grid-cols-2 gap-6"
+                                >
+                                    <div>
+                                        <label
+                                            for="trigger-service-name"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            >Trigger Service Name</label
+                                        >
+                                        <input
+                                            type="text"
+                                            id="trigger-service-name"
+                                            name="trigger_service_name"
+                                            required
+                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label
+                                            for="trigger-type"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            >Type</label
+                                        >
+                                        <select
+                                            id="trigger-type"
+                                            name="trigger_type"
+                                            required
+                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        >
+                                            <option value="persistent">
+                                                persistent
+                                            </option>
+                                            <option value="temporary">
+                                                temporary
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label
+                                            for="trigger-host"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            >Host</label
+                                        >
+                                        <input
+                                            type="url"
+                                            id="trigger-host"
+                                            name="trigger_host"
+                                            required
+                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label
+                                            for="trigger-path"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                            >Path</label
+                                        >
+                                        <input
+                                            type="text"
+                                            id="trigger-path"
+                                            name="trigger_path"
+                                            required
+                                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                </div>
+
+                                <!-- Options -->
+                                <div class="mt-6">
+                                    <h5
+                                        class="text-sm font-medium text-gray-900 dark:text-white mb-4"
+                                    >
+                                        Options
+                                    </h5>
+                                    <div
+                                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+                                    >
+                                        <div>
+                                            <label
+                                                for="queue-type"
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                                >Queue Type</label
+                                            >
+                                            <select
+                                                id="queue-type"
+                                                name="queue_type"
+                                                required
+                                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            >
+                                                <option value="external.medium">
+                                                    external.medium
+                                                </option>
+                                                <option value="external.high">
+                                                    external.high
+                                                </option>
+                                                <option value="external.low">
+                                                    external.low
+                                                </option>
+                                                <option value="internal.medium">
+                                                    internal.medium
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label
+                                                for="max-retries"
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                                >Max Retries</label
+                                            >
+                                            <input
+                                                type="number"
+                                                id="max-retries"
+                                                name="max_retries"
+                                                min="0"
+                                                max="10"
+                                                value="3"
+                                                required
+                                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                for="retention"
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                                >Retention</label
+                                            >
+                                            <input
+                                                type="text"
+                                                id="retention"
+                                                name="retention"
+                                                value="168h"
+                                                required
+                                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                for="unique-ttl"
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                                >Unique TTL</label
+                                            >
+                                            <input
+                                                type="text"
+                                                id="unique-ttl"
+                                                name="unique_ttl"
+                                                value="60s"
+                                                required
+                                                class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div
+                                class="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800 mt-6"
+                            >
+                                <button
+                                    type="button"
+                                    id="cancel-btn"
+                                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                >
+                                    Create Event
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="app.js"></script>
+    </body>
+</html>
