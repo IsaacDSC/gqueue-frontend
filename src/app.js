@@ -45,6 +45,9 @@ class Dashboard {
     this.autoRefreshEnabled = savedConfig.autoRefreshEnabled !== false;
     this.autoRefreshTimer = null;
 
+    // Initialize API service
+    this.api = new ManagerApi(this.apiBaseUrl, this.authToken, this.apiTimeout);
+
     console.log("Dashboard initializing with config:", {
       apiBaseUrl: this.apiBaseUrl,
       hasToken: !!this.authToken,
@@ -989,42 +992,13 @@ class Dashboard {
       submitButton.textContent = "Creating...";
       submitButton.disabled = true;
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.apiTimeout);
+      const result = await this.api.createEvent(eventData);
 
-      const headers = {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      };
-
-      if (this.authToken) {
-        headers["Authorization"] = `Bearer ${this.authToken}`;
+      if (result.status === "ERROR") {
+        throw new Error(result.error);
       }
 
-      const response = await fetch(`${this.apiBaseUrl}/api/v1/event/consumer`, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(eventData),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorData}`);
-      }
-
-      const result = await response.json();
-
-      // Add created_at timestamp for local storage
-      const eventWithTimestamp = {
-        ...eventData,
-        created_at: new Date().toISOString(),
-        id: result.id || Date.now(), // Use backend ID if available
-      };
-
-      this.addEventToLocal(eventWithTimestamp);
+      this.addEventToLocal(result.data);
       this.closeModal();
       this.showSuccessMessage("Event created successfully!");
     } catch (error) {
@@ -1046,15 +1020,6 @@ class Dashboard {
   addEvent(event) {
     // This method is kept for backward compatibility with sample events
     this.addEventToLocal(event);
-  }
-
-  deleteEvent(index) {
-    if (confirm("Are you sure you want to delete this event?")) {
-      this.events.splice(index, 1);
-      this.renderEventsList();
-      // Note: In a full implementation, this would call a DELETE API endpoint
-      // For now, we're just removing from local storage
-    }
   }
 
   async saveEvents() {
@@ -1199,7 +1164,7 @@ class Dashboard {
                             View JSON
                         </button>
                         <button
-                            onclick="dashboard.deleteEvent(${index})"
+                            onclick="dashboard.deleteEventById('${event.id}')"
                             class="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 border border-red-300 dark:border-red-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         >
                             Delete
@@ -1210,6 +1175,13 @@ class Dashboard {
             `;
       })
       .join("");
+  }
+
+  deleteEventById(id) {
+    console.log({ id });
+    if (confirm(`Are you sure you want to delete the event "${id}"?`)) {
+      this.renderEventsList();
+    }
   }
 
   viewEvent(index) {
@@ -1513,25 +1485,7 @@ class Dashboard {
   // API Connection Test
   async testBackendConnection() {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-      const headers = {
-        Accept: "application/json",
-      };
-
-      if (this.authToken) {
-        headers["Authorization"] = `Bearer ${this.authToken}`;
-      }
-
-      const response = await fetch(`${this.apiBaseUrl}/api/v1/ping`, {
-        method: "GET",
-        headers: headers,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      return response.ok;
+      return await this.api.ping();
     } catch (error) {
       console.warn("Backend connection test failed:", error);
       return false;
@@ -1619,26 +1573,11 @@ class Dashboard {
       testButton.textContent = "Testing...";
       testButton.disabled = true;
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), testTimeout);
+      // Create a temporary API instance for testing with new parameters
+      const testApi = new ManagerApi(testUrl, this.authToken, testTimeout);
+      const isConnected = await testApi.ping();
 
-      const headers = {
-        Accept: "application/json",
-      };
-
-      if (this.authToken) {
-        headers["Authorization"] = `Bearer ${this.authToken}`;
-      }
-
-      const response = await fetch(`${testUrl}/api/v1/ping`, {
-        method: "GET",
-        headers: headers,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
+      if (isConnected) {
         this.showSuccessMessage(`Connection successful to ${testUrl}`);
         testButton.className = testButton.className.replace(
           "text-gray-700 dark:text-gray-300",
@@ -1648,11 +1587,16 @@ class Dashboard {
         // Update the API configuration if connection is successful
         this.apiBaseUrl = testUrl;
         this.apiTimeout = testTimeout;
+        this.api = new ManagerApi(
+          this.apiBaseUrl,
+          this.authToken,
+          this.apiTimeout,
+        );
 
         // Update the main API status
         this.checkApiStatus();
       } else {
-        this.showErrorMessage(`Connection failed: HTTP ${response.status}`);
+        this.showErrorMessage(`Connection failed to ${testUrl}`);
       }
     } catch (error) {
       if (error.name === "AbortError") {
@@ -1750,35 +1694,18 @@ class Dashboard {
     try {
       console.log(`Fetching events from: ${this.apiBaseUrl}/api/v1/events`);
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.apiTimeout);
+      const result = await this.api.getEvents();
+      console.log("API Response:", result);
 
-      const headers = {
-        Accept: "application/json",
-      };
-
-      if (this.authToken) {
-        headers["Authorization"] = `Bearer ${this.authToken}`;
-      }
-
-      const response = await fetch(`${this.apiBaseUrl}/api/v1/events`, {
-        method: "GET",
-        headers: headers,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        console.warn(`Failed to fetch events: HTTP ${response.status}`);
-        this.showErrorMessage(`API Error: HTTP ${response.status}`);
+      if (result.status === "ERROR") {
+        console.warn(`Failed to fetch events: ${result.error}`);
+        this.showErrorMessage(`API Error: ${result.error}`);
         this.lastDataSource = "Local (API Error)";
         this.loadLocalEvents();
         return;
       }
 
-      const apiEvents = await response.json();
-      console.log("API Response:", apiEvents);
+      const apiEvents = result.data;
 
       // Transform API response to match our local format if needed
       const transformedEvents = this.transformAPIEvents(apiEvents);

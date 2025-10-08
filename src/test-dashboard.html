@@ -190,18 +190,30 @@
 
             testConfigLoading();
 
-            // Try to load the dashboard script to test it
-            log("Attempting to load dashboard script...");
-            const script = document.createElement('script');
-            script.src = 'app.js';
-            script.onload = () => {
-                log("✅ Dashboard script loaded successfully");
-                setTimeout(testDashboardLoading, 500);
+            // Try to load the api service first, then dashboard script
+            log("Attempting to load API service...");
+            const apiScript = document.createElement('script');
+            apiScript.src = 'services/api.js';
+            apiScript.onload = () => {
+                log("✅ API service loaded successfully");
+
+                // Now load the dashboard script
+                log("Attempting to load dashboard script...");
+                const script = document.createElement('script');
+                script.src = 'app.js';
+                script.onload = () => {
+                    log("✅ Dashboard script loaded successfully");
+                    setTimeout(testDashboardLoading, 500);
+                };
+                script.onerror = () => {
+                    log("❌ Failed to load dashboard script");
+                };
+                document.head.appendChild(script);
             };
-            script.onerror = () => {
-                log("❌ Failed to load dashboard script");
+            apiScript.onerror = () => {
+                log("❌ Failed to load API service");
             };
-            document.head.appendChild(script);
+            document.head.appendChild(apiScript);
         });
     </script>
 </body>

@@ -355,10 +355,18 @@ class Dashboard {
     this.renderEventsList();
   }
 
-  async deleteEvent(index) {
-    if (confirm("Are you sure you want to delete this event?")) {
-      this.events.splice(index, 1);
-      await this.saveEvents();
+  deleteEventById(index) {
+    const eventIndex = parseInt(index);
+    const event = this.events[eventIndex];
+
+    if (!event) {
+      console.error("Event not found at index:", eventIndex);
+      return;
+    }
+
+    console.log({ deletingEvent: event });
+    if (confirm(`Are you sure you want to delete the event "${event.name}"?`)) {
+      this.events.splice(eventIndex, 1);
       this.renderEventsList();
     }
   }
@@ -408,98 +416,6 @@ class Dashboard {
       colors[queueType] ||
       "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
     );
-  }
-
-  renderEventsList() {
-    const container = document.getElementById("events-list");
-    const noEventsMessage = document.getElementById("no-events");
-
-    if (this.events.length === 0) {
-      container.innerHTML = "";
-      noEventsMessage.style.display = "block";
-      return;
-    }
-
-    noEventsMessage.style.display = "none";
-    container.innerHTML = this.events
-      .map((event, index) => {
-        const queueTypeColor = this.getQueueTypeColor(
-          event.triggers[0].option.queue_type,
-        );
-        const typeColor =
-          event.triggers[0].type === "persistent"
-            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-
-        return `
-            <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-6 hover:shadow-lg transition-all duration-200">
-                <div class="flex justify-between items-start mb-4">
-                    <div class="flex-1">
-                        <div class="flex items-center flex-wrap gap-3 mb-3">
-                            <h4 class="text-xl font-bold text-gray-900 dark:text-white">${event.name}</h4>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                ${event.service_name}
-                            </span>
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${typeColor}">
-                                ${event.triggers[0].type}
-                            </span>
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${queueTypeColor}">
-                                ${event.triggers[0].option.queue_type}
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 text-sm">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-gray-500 dark:text-gray-400">Team:</span>
-                                <span class="font-medium text-gray-900 dark:text-white">${event.team_owner}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-gray-500 dark:text-gray-400">Max Retries:</span>
-                                <span class="font-medium text-gray-900 dark:text-white">${event.triggers[0].option.max_retries}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-gray-500 dark:text-gray-400">Retention:</span>
-                                <span class="font-medium text-gray-900 dark:text-white">${event.triggers[0].option.retention}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-gray-500 dark:text-gray-400">TTL:</span>
-                                <span class="font-medium text-gray-900 dark:text-white">${event.triggers[0].option.unique_ttl}</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-gray-500 dark:text-gray-400">Consumer:</span>
-                                <span class="font-medium text-gray-900 dark:text-white">${event.triggers[0].service_name}</span>
-                            </div>
-                        </div>
-
-                        <div class="mb-2 text-sm">
-                            <span class="text-gray-500 dark:text-gray-400">Endpoint:</span>
-                            <span class="font-mono text-gray-900 dark:text-white">${event.triggers[0].host}${event.triggers[0].path}</span>
-                        </div>
-
-                        <div class="text-xs text-gray-400 dark:text-gray-500">
-                            Created: ${new Date(event.created_at).toLocaleString()}
-                        </div>
-                    </div>
-
-                    <div class="flex space-x-2 ml-4">
-                        <button
-                            onclick="dashboard.viewEvent(${index})"
-                            class="px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 border border-blue-300 dark:border-blue-600 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                        >
-                            View JSON
-                        </button>
-                        <button
-                            onclick="(async () => await dashboard.deleteEvent(${index}))()"
-                            class="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 border border-red-300 dark:border-red-600 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                        >
-                            Delete
-                        </button>
-                    </div>
-                </div>
-            </div>
-            `;
-      })
-      .join("");
   }
 
   viewEvent(index) {
