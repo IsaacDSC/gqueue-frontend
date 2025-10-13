@@ -1,0 +1,204 @@
+[
+  {
+    "id": "da4543c5-3cca-4151-8737-5f4cf7fa702f",
+    "name": "payment.processed",
+    "service_name": "my-app",
+    "repo_url": "http://github.com/my-org/my-repo",
+    "team_owner": "my-team",
+    "type_event": 0,
+    "state": "active",
+    "triggers": [
+      {
+        "service_name": "consumer-1",
+        "type": "persistent",
+        "host": "http://localhost:3333",
+        "path": "/wq/payment/processed",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "option": {
+          "max_retries": 3,
+          "retention": "168h0m0s",
+          "schedule_in": "0s",
+          "unique_ttl": "1m0s",
+          "deadline": null,
+          "queue_type": "external.medium"
+        }
+      }
+    ]
+  },
+  {
+    "id": "e591f7ec-b6c8-413b-9813-ec9aa4e64d5b",
+    "name": "event-test",
+    "service_name": "consumer-test",
+    "repo_url": "https://myrepo.com",
+    "team_owner": "teamx",
+    "type_event": 0,
+    "state": "active",
+    "triggers": [
+      {
+        "service_name": "trigger01",
+        "type": "persistent",
+        "host": "http://localhost:3333",
+        "path": "/consumer/test",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "option": {
+          "max_retries": 3,
+          "retention": "168h0m0s",
+          "schedule_in": "0s",
+          "unique_ttl": "1m0s",
+          "deadline": null,
+          "queue_type": "external.medium"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cbb445a5-f92d-4a34-9c1c-972cc8e711d0",
+    "name": "event2",
+    "service_name": "my-app",
+    "repo_url": "https://my-repo.com",
+    "team_owner": "my-team",
+    "type_event": 0,
+    "state": "active",
+    "triggers": [
+      {
+        "service_name": "consumer2",
+        "type": "persistent",
+        "host": "http://localhost:3333",
+        "path": "/consumer2",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "option": {
+          "max_retries": 3,
+          "retention": "168h0m0s",
+          "schedule_in": "0s",
+          "unique_ttl": "1m0s",
+          "deadline": null,
+          "queue_type": "external.medium"
+        }
+      },
+      {
+        "service_name": "consumer2.1",
+        "type": "persistent",
+        "host": "http://localhost:3333",
+        "path": "/consumer2.1",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "option": {
+          "max_retries": 3,
+          "retention": "168h0m0s",
+          "schedule_in": "0s",
+          "unique_ttl": "1m0s",
+          "deadline": null,
+          "queue_type": "external.medium"
+        }
+      }
+    ]
+  },
+  {
+    "id": "a7c33673-d8ac-4470-ad62-177c78419f49",
+    "name": "event.teste1",
+    "service_name": "serviceTest",
+    "repo_url": "https://repo/xpto1",
+    "team_owner": "my-team",
+    "type_event": 0,
+    "state": "active",
+    "triggers": [
+      {
+        "service_name": "consumer-test-1",
+        "type": "persistent",
+        "host": "http://localhost:333",
+        "path": "/wq/consumer/test-1",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "option": {
+          "max_retries": 3,
+          "retention": "168h0m0s",
+          "schedule_in": "0s",
+          "unique_ttl": "1m0s",
+          "deadline": null,
+          "queue_type": "external.medium"
+        }
+      }
+    ]
+  },
+  {
+    "id": "bdebedd6-b524-4282-9975-f95db2f4ef9f",
+    "name": "event.teste2",
+    "service_name": "serviceTest2",
+    "repo_url": "https://repo/xpto2",
+    "team_owner": "my-team",
+    "type_event": 0,
+    "state": "active",
+    "triggers": [
+      {
+        "service_name": "consumer-test-2",
+        "type": "persistent",
+        "host": "http://localhost:333",
+        "path": "/wq/consumer/test-2",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "option": {
+          "max_retries": 3,
+          "retention": "168h0m0s",
+          "schedule_in": "0s",
+          "unique_ttl": "1m0s",
+          "deadline": null,
+          "queue_type": "external.medium"
+        }
+      }
+    ]
+  },
+  {
+    "id": "ce6b9a8f-08d2-4b71-8ea8-14498eab578a",
+    "name": "event.teste3",
+    "service_name": "serviceTest3",
+    "repo_url": "https://my-repo/test3",
+    "team_owner": "my-team",
+    "type_event": 0,
+    "state": "active",
+    "triggers": [
+      {
+        "service_name": "serviceTest3",
+        "type": "persistent",
+        "host": "http://localhost:333",
+        "path": "/wq/consumer/test-3",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "option": {
+          "max_retries": 3,
+          "retention": "168h0m0s",
+          "schedule_in": "0s",
+          "unique_ttl": "1m0s",
+          "deadline": null,
+          "queue_type": "external.medium"
+        }
+      },
+      {
+        "service_name": "serviceTest3.1",
+        "type": "persistent",
+        "host": "http://localhost:333",
+        "path": "/wq/consumer/test-3.1",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "option": {
+          "max_retries": 3,
+          "retention": "168h0m0s",
+          "schedule_in": "0s",
+          "unique_ttl": "1m0s",
+          "deadline": null,
+          "queue_type": "external.medium"
+        }
+      }
+    ]
+  }
+]
