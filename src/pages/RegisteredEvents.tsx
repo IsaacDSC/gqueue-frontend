@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useRegisteredEvents } from "../hooks/useRegisteredEvents";
 import { useUpdateEvent } from "../hooks/useUpdateEvent";
+import { useDeleteEvent } from "../hooks/useDeleteEvent";
 import { Link } from "../components/Link";
 import { Event } from "../types";
 
@@ -13,12 +14,20 @@ const RegisteredEvents: React.FC = () => {
     error: updateError,
     clearError: clearUpdateError,
   } = useUpdateEvent();
+  const {
+    deleteEvent,
+    loading: deleting,
+    error: deleteError,
+    clearError: clearDeleteError,
+  } = useDeleteEvent();
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showJsonModal, setShowJsonModal] = useState(false);
   const [jsonContent, setJsonContent] = useState<string>("");
   const [jsonFormatError, setJsonFormatError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterByState, setFilterByState] = useState<string>("all");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
   // Filtrar eventos baseado no termo de busca e estado
   const filteredEvents = events.filter((event) => {
@@ -42,6 +51,28 @@ const RegisteredEvents: React.FC = () => {
     setSelectedEvent(event);
     setJsonContent(JSON.stringify(event, null, 2));
     setShowJsonModal(true);
+  };
+
+  const handleDeleteClick = (event: Event) => {
+    setEventToDelete(event);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!eventToDelete?.id) return;
+
+    const success = await deleteEvent(eventToDelete.id);
+    if (success) {
+      setShowDeleteModal(false);
+      setEventToDelete(null);
+      refreshEvents();
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setEventToDelete(null);
+    clearDeleteError();
   };
 
   const handleSaveJson = async () => {
@@ -302,6 +333,15 @@ const RegisteredEvents: React.FC = () => {
                   >
                     Edit JSON
                   </button>
+                  <button
+                    onClick={() => handleDeleteClick(event)}
+                    disabled={deleting}
+                    className="px-3 py-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed rounded text-sm"
+                  >
+                    {deleting && eventToDelete?.id === event.id
+                      ? "Deletando..."
+                      : "Delete"}
+                  </button>
                 </div>
               </div>
 
@@ -534,6 +574,100 @@ const RegisteredEvents: React.FC = () => {
                     Submit
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && eventToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-lg max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-white">
+                    Confirmar Exclusão
+                  </h3>
+                  <p className="text-sm text-gray-300">
+                    Esta ação não pode ser desfeita.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-gray-300">
+                  Tem certeza que deseja excluir o evento{" "}
+                  <span className="font-semibold text-white">
+                    {eventToDelete.name}
+                  </span>
+                  ?
+                </p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Serviço: {eventToDelete.service_name} | Team:{" "}
+                  {eventToDelete.team_owner}
+                </p>
+              </div>
+
+              {deleteError && (
+                <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded text-red-100">
+                  {deleteError}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={handleCancelDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white rounded flex items-center gap-2"
+                >
+                  {deleting && (
+                    <svg
+                      className="animate-spin -ml-1 mr-1 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  )}
+                  {deleting ? "Excluindo..." : "Excluir"}
+                </button>
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@ export { useEvents } from "./useEvents";
 export { useRegisteredEvents } from "./useRegisteredEvents";
 export { useEventPublisher } from "./useEventPublisher";
 export { useUpdateEvent } from "./useUpdateEvent";
+export { useDeleteEvent } from "./useDeleteEvent";
 
 export type {
   ConnectionConfig,
