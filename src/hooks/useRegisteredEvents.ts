@@ -42,7 +42,7 @@ export const useRegisteredEvents = (): UseRegisteredEventsReturn => {
 
       const data = await response.json();
 
-      // A API retorna diretamente um array de eventos
+      // The API returns directly an array of events
       if (Array.isArray(data)) {
         setEvents(data);
       } else {
@@ -50,7 +50,9 @@ export const useRegisteredEvents = (): UseRegisteredEventsReturn => {
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to fetch registered events";
+        err instanceof Error
+          ? err.message
+          : "Failed to fetch registered events";
       setError(errorMessage);
       console.error("Error fetching registered events:", err);
       setEvents([]);
@@ -63,7 +65,7 @@ export const useRegisteredEvents = (): UseRegisteredEventsReturn => {
     fetchEvents();
   }, [fetchEvents]);
 
-  // Buscar eventos automaticamente quando o hook é usado
+  // Fetch events automatically when the hook is used
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
