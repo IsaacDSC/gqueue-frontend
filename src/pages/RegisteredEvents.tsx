@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRegisteredEvents } from "../hooks/useRegisteredEvents";
 import { useUpdateEvent } from "../hooks/useUpdateEvent";
 import { useDeleteEvent } from "../hooks/useDeleteEvent";
@@ -28,19 +28,129 @@ const RegisteredEvents: React.FC = () => {
   const [filterByState, setFilterByState] = useState<string>("all");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Filtrar eventos baseado no termo de busca e estado
   const filteredEvents = events.filter((event) => {
-    const matchesSearch =
-      event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.service_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.team_owner.toLowerCase().includes(searchTerm.toLowerCase());
+    // Verificações de segurança para evitar erros com valores null/undefined
+    const eventName = event.name?.toLowerCase() || "";
+    const serviceName = event.service_name?.toLowerCase() || "";
+    const teamOwner = event.team_owner?.toLowerCase() || "";
+    const eventType = event.type_event?.toString() || "";
+    const searchTermLower = searchTerm.toLowerCase().trim();
 
+    // Debug: Log do evento sendo filtrado (apenas quando há busca)
+    if (searchTermLower && process.env.NODE_ENV === "development") {
+      console.log("Filtering event:", {
+        name: eventName,
+        service: serviceName,
+        team: teamOwner,
+        type: eventType,
+        searchTerm: searchTermLower,
+      });
+    }
+
+    // Buscar também nos triggers
+    const triggerMatches =
+      event.triggers?.some((trigger) => {
+        const triggerService = trigger.service_name?.toLowerCase() || "";
+        const triggerType = trigger.type?.toLowerCase() || "";
+        const triggerHost = trigger.host?.toLowerCase() || "";
+        const triggerPath = trigger.path?.toLowerCase() || "";
+
+        const matches =
+          triggerService.includes(searchTermLower) ||
+          triggerType.includes(searchTermLower) ||
+          triggerHost.includes(searchTermLower) ||
+          triggerPath.includes(searchTermLower);
+
+        if (
+          matches &&
+          searchTermLower &&
+          process.env.NODE_ENV === "development"
+        ) {
+          console.log("Trigger match found:", {
+            triggerService,
+            triggerType,
+            triggerHost,
+            triggerPath,
+            searchTerm: searchTermLower,
+          });
+        }
+
+        return matches;
+      }) || false;
+
+    // Se não há termo de busca, considera como match
+    const matchesSearch =
+      !searchTermLower ||
+      eventName.includes(searchTermLower) ||
+      serviceName.includes(searchTermLower) ||
+      teamOwner.includes(searchTermLower) ||
+      eventType.includes(searchTermLower) ||
+      triggerMatches;
+
+    // Filtro por estado
     const matchesState =
       filterByState === "all" || event.state === filterByState;
 
-    return matchesSearch && matchesState;
+    const finalMatch = matchesSearch && matchesState;
+
+    // Debug: Log resultado final
+    if (searchTermLower && process.env.NODE_ENV === "development") {
+      console.log(
+        `Event "${eventName}" ${finalMatch ? "MATCHES" : "DOES NOT MATCH"} search criteria`,
+      );
+    }
+
+    return finalMatch;
   });
+
+  // Atalhos de teclado
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl+K para focar na busca
+      if ((event.ctrlKey || event.metaKey) && event.key === "k") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      // Escape para limpar busca se estiver focada
+      if (
+        event.key === "Escape" &&
+        document.activeElement === searchInputRef.current
+      ) {
+        setSearchTerm("");
+        searchInputRef.current?.blur();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Função para destacar termos de busca no texto
+  const highlightSearchTerm = (text: string, searchTerm: string) => {
+    if (!searchTerm.trim()) return text;
+
+    const regex = new RegExp(
+      `(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi",
+    );
+    const parts = text.split(regex);
+
+    return parts.map((part, index) =>
+      regex.test(part) ? (
+        <span
+          key={index}
+          className="bg-yellow-600 text-yellow-100 px-1 rounded"
+        >
+          {part}
+        </span>
+      ) : (
+        part
+      ),
+    );
+  };
 
   const handleRefresh = () => {
     clearError();
@@ -252,14 +362,40 @@ const RegisteredEvents: React.FC = () => {
       {/* Filters and Search */}
       <div className="bg-gray-800 rounded-lg p-6 mb-6">
         <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1">
+          <div className="flex-1 relative">
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search by name, service or team..."
+              placeholder="Search by name, service, team, type, triggers... (Ctrl+K)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setSearchTerm("");
+                  e.currentTarget.blur();
+                }
+              }}
+              className="w-full px-4 py-2 pr-10 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                title="Clear search"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
           <div className="flex gap-4">
             <select
@@ -274,6 +410,50 @@ const RegisteredEvents: React.FC = () => {
             </select>
           </div>
         </div>
+
+        {/* Results Counter */}
+        {events.length > 0 && (
+          <div className="text-sm text-gray-400 mt-4 flex justify-between items-center">
+            <div>
+              {searchTerm || filterByState !== "all" ? (
+                <>
+                  Showing{" "}
+                  <span className="text-blue-400 font-medium">
+                    {filteredEvents.length}
+                  </span>{" "}
+                  of <span className="text-white">{events.length}</span> events
+                  {searchTerm && (
+                    <span>
+                      {" "}
+                      matching "
+                      <span className="text-yellow-400">{searchTerm}</span>"
+                    </span>
+                  )}
+                  {filterByState !== "all" && (
+                    <span>
+                      {" "}
+                      with state "
+                      <span className="text-green-400">{filterByState}</span>"
+                    </span>
+                  )}
+                </>
+              ) : (
+                `${events.length} events total`
+              )}
+            </div>
+            {(searchTerm || filterByState !== "all") && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterByState("all");
+                }}
+                className="text-xs text-gray-500 hover:text-gray-300 underline"
+              >
+                Clear all filters
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Events List */}
@@ -294,9 +474,45 @@ const RegisteredEvents: React.FC = () => {
                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m0 0v5a2 2 0 002 2h8a2 2 0 002-2v-5m-6 0V9a2 2 0 00-2-2H8a2 2 0 00-2 2v4m4 0v2"
                 />
               </svg>
-              {searchTerm || filterByState !== "all"
-                ? "No events found with the applied filters"
-                : "No registered events found"}
+              {searchTerm || filterByState !== "all" ? (
+                <>
+                  <div className="text-lg font-medium mb-2">
+                    No events found matching your criteria
+                  </div>
+                  {searchTerm && (
+                    <div className="text-sm mt-2">
+                      Search term: "
+                      <span className="text-yellow-400 font-medium">
+                        {searchTerm}
+                      </span>
+                      "
+                    </div>
+                  )}
+                  {filterByState !== "all" && (
+                    <div className="text-sm mt-1">
+                      State filter:{" "}
+                      <span className="text-green-400 font-medium">
+                        {filterByState}
+                      </span>
+                    </div>
+                  )}
+                  <div className="text-xs mt-4 text-gray-500">
+                    Search includes: event name, service name, team owner, event
+                    type, and trigger details
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-lg font-medium mb-2">
+                    No registered events found
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {loading
+                      ? "Loading events..."
+                      : "No events have been registered yet"}
+                  </div>
+                </>
+              )}
             </div>
             {(searchTerm || filterByState !== "all") && (
               <button
@@ -315,7 +531,9 @@ const RegisteredEvents: React.FC = () => {
             <div key={event.id} className="bg-gray-800 rounded-lg p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-xl font-semibold">{event.name}</h3>
+                  <h3 className="text-xl font-semibold">
+                    {highlightSearchTerm(event.name, searchTerm)}
+                  </h3>
                   <span
                     className={`px-2 py-1 rounded text-xs font-medium ${getStateColor(event.state)}`}
                   >
@@ -348,11 +566,15 @@ const RegisteredEvents: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm mb-4">
                 <div>
                   <span className="text-gray-400">Service: </span>
-                  <span className="text-white">{event.service_name}</span>
+                  <span className="text-white">
+                    {highlightSearchTerm(event.service_name, searchTerm)}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-400">Team: </span>
-                  <span className="text-white">{event.team_owner}</span>
+                  <span className="text-white">
+                    {highlightSearchTerm(event.team_owner, searchTerm)}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-400">Repository: </span>
