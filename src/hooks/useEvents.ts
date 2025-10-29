@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { CreateEventRequest, Event, EventFormData } from "../types";
+import { useConnectionConfig } from "./useConnectionConfig";
 
 interface UseEventsReturn {
   events: Event[];
@@ -11,12 +12,11 @@ interface UseEventsReturn {
   clearError: () => void;
 }
 
-const API_BASE_URL = "http://localhost:8080/api/v1";
-
 export const useEvents = (): UseEventsReturn => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { makeAuthenticatedRequest } = useConnectionConfig();
 
   const clearError = useCallback(() => {
     setError(null);
@@ -27,10 +27,9 @@ export const useEvents = (): UseEventsReturn => {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/events`, {
+      const response = await makeAuthenticatedRequest("/api/v1/events", {
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
           Accept: "application/json",
         },
       });
@@ -51,7 +50,7 @@ export const useEvents = (): UseEventsReturn => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [makeAuthenticatedRequest]);
 
   const createEvent = useCallback(
     async (eventData: CreateEventRequest): Promise<boolean> => {
@@ -61,14 +60,16 @@ export const useEvents = (): UseEventsReturn => {
       try {
         console.log("Creating event with data:", eventData);
 
-        const response = await fetch(`${API_BASE_URL}/event/consumer`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
+        const response = await makeAuthenticatedRequest(
+          "/api/v1/event/consumer",
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+            },
+            body: JSON.stringify(eventData),
           },
-          body: JSON.stringify(eventData),
-        });
+        );
 
         console.log("Response status:", response.status);
         console.log("Response headers:", response.headers);
@@ -152,23 +153,27 @@ export const useEvents = (): UseEventsReturn => {
   );
 
   const testApiConnection = useCallback(
-    async (baseUrl: string = API_BASE_URL): Promise<boolean> => {
+    async (baseUrl?: string): Promise<boolean> => {
       setLoading(true);
       setError(null);
 
       try {
-        console.log("Testing API connection to:", baseUrl);
+        // For test connection, we'll allow a custom baseUrl or use default
+        const testUrl = baseUrl || "http://localhost:8080";
+        console.log("Testing API connection to:", testUrl);
+
+        const headers: Record<string, string> = {
+          Accept: "application/json",
+        };
 
         // Try multiple endpoints to test connectivity
         const endpoints = ["/health", "/api/v1/health", "/ping"];
 
         for (const endpoint of endpoints) {
           try {
-            const response = await fetch(`${baseUrl}${endpoint}`, {
+            const response = await fetch(`${testUrl}${endpoint}`, {
               method: "GET",
-              headers: {
-                Accept: "application/json",
-              },
+              headers,
             });
 
             console.log(`${endpoint} response:`, response.status);
@@ -184,11 +189,9 @@ export const useEvents = (): UseEventsReturn => {
         }
 
         // If health checks fail, try the actual API endpoint
-        const response = await fetch(`${baseUrl}/api/v1/events`, {
+        const response = await fetch(`${testUrl}/api/v1/events`, {
           method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
+          headers,
         });
 
         console.log("Events endpoint response:", response.status);

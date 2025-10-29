@@ -47,7 +47,7 @@ export const useInsights = (config: UseInsightsConfig): UseInsightsReturn => {
       };
 
       if (mergedConfig.authToken) {
-        headers["Authorization"] = `Bearer ${mergedConfig.authToken}`;
+        headers["Authorization"] = `Basic ${mergedConfig.authToken}`;
       }
 
       const response = await fetch(url, {
@@ -96,7 +96,7 @@ export const useInsights = (config: UseInsightsConfig): UseInsightsReturn => {
           };
 
           if (mergedConfig.authToken) {
-            headers["Authorization"] = `Bearer ${mergedConfig.authToken}`;
+            headers["Authorization"] = `Basic ${mergedConfig.authToken}`;
           }
 
           const response = await fetch(url, {

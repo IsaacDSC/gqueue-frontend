@@ -121,7 +121,7 @@ export interface InsightsResponse {
 
 // Event Management types
 export interface TriggerOption {
-  queue_type: string;
+  wq_type: string;
   max_retries: number;
   retention: string;
   unique_ttl: string;
@@ -175,7 +175,7 @@ export interface EventFormData {
   path: string;
 
   // Options
-  queue_type: string;
+  wq_type: string;
   max_retries: number;
   retention: string;
   unique_ttl: string;

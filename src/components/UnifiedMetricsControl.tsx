@@ -246,7 +246,7 @@ export const MetricsControlPanel = ({
   const clearAllSelections = async () => {
     if (
       window.confirm(
-        "Tem certeza que deseja limpar todas as seleções? Esta ação não pode ser desfeita.",
+        "Are you sure you want to clear all selections? This action cannot be undone.",
       )
     ) {
       setIsClearing(true);
@@ -254,10 +254,10 @@ export const MetricsControlPanel = ({
       try {
         clearAll();
 
-        // Pequeno delay para mostrar feedback visual
+        // Small delay to show visual feedback
         await new Promise((resolve) => setTimeout(resolve, 300));
 
-        // Força uma re-renderização para garantir que a UI seja atualizada
+        // Force a re-render to ensure the UI is updated
         window.dispatchEvent(new Event("storage"));
       } finally {
         setIsClearing(false);
@@ -284,10 +284,10 @@ export const MetricsControlPanel = ({
                 ? "bg-gray-600 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800 hover:scale-105 active:scale-95"
             } text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform border border-blue-500 hover:border-blue-400 flex items-center gap-2`}
-            title="Limpar todas as seleções do localStorage"
+            title="Clear all selections from localStorage"
           >
             <span>{isClearing ? "⏳" : "🗑️"}</span>
-            <span>{isClearing ? "Limpando..." : "Clear All"}</span>
+            <span>{isClearing ? "Clearing..." : "Clear All"}</span>
           </button>
         </div>
         <div className="flex items-center justify-between">

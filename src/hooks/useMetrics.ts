@@ -1,3 +1,17 @@
+import { useState, useEffect } from "react";
+
+interface Metrics {
+  cpuUsage: number;
+  memoryUsage: number;
+  diskUsage: number;
+}
+
+const initialMetrics: Metrics = {
+  cpuUsage: 0,
+  memoryUsage: 0,
+  diskUsage: 0,
+};
+
 export const useMetrics = () => {
   const [metrics, setMetrics] = useState<Metrics>(initialMetrics);
 

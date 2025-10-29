@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useEvents, EventFormData, CreateEventRequest } from "../hooks";
+import { DEFAULT_QUEUE_TYPE } from "../constants/queueTypes";
+import QueueTypeSelect from "./subComponents/QueueTypeSelect";
 
 interface AddEventModalProps {
   isOpen: boolean;
@@ -12,10 +14,12 @@ interface TriggerFormData {
   type: string;
   host: string;
   path: string;
-  queue_type: string;
+  wq_type: string;
   max_retries: number;
   retention: string;
   unique_ttl: string;
+  schedule_in?: string;
+  deadline?: string | null;
 }
 
 const AddEventModal: React.FC<AddEventModalProps> = ({
@@ -32,7 +36,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
       | "trigger_type"
       | "host"
       | "path"
-      | "queue_type"
+      | "wq_type"
       | "max_retries"
       | "retention"
       | "unique_ttl"
@@ -51,7 +55,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
       type: "persistent",
       host: "",
       path: "",
-      queue_type: "external.medium",
+      wq_type: DEFAULT_QUEUE_TYPE,
       max_retries: 3,
       retention: "168h",
       unique_ttl: "60s",
@@ -101,7 +105,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
         type: "persistent",
         host: "",
         path: "",
-        queue_type: "external.medium",
+        wq_type: DEFAULT_QUEUE_TYPE,
         max_retries: 3,
         retention: "168h",
         unique_ttl: "60s",
@@ -124,22 +128,36 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
         team_owner: parsed.team_owner || "",
       });
       setTriggers(
-        parsed.triggers?.map((trigger: any) => ({
-          service_name: trigger.service_name || "",
-          type: trigger.type || "persistent",
-          host: trigger.host || "",
-          path: trigger.path || "",
-          queue_type: trigger.option?.queue_type || "external.medium",
-          max_retries: trigger.option?.max_retries || 3,
-          retention: trigger.option?.retention || "168h",
-          unique_ttl: trigger.option?.unique_ttl || "60s",
-        })) || [
+        parsed.triggers?.map((trigger: any) => {
+          const triggerData: TriggerFormData = {
+            service_name: trigger.service_name || "",
+            type: trigger.type || "persistent",
+            host: trigger.host || "",
+            path: trigger.path || "",
+            wq_type: trigger.option?.wq_type || trigger.option?.queue_type || DEFAULT_QUEUE_TYPE,
+            max_retries: trigger.option?.max_retries || 3,
+            retention: trigger.option?.retention || "168h",
+            unique_ttl: trigger.option?.unique_ttl || "60s",
+          };
+
+          // Only include schedule_in if it has a value
+          if (trigger.option?.schedule_in && trigger.option.schedule_in.trim() !== "") {
+            triggerData.schedule_in = trigger.option.schedule_in;
+          }
+
+          // Only include deadline if it has a value
+          if (trigger.option?.deadline !== undefined && trigger.option.deadline !== null && trigger.option.deadline !== "") {
+            triggerData.deadline = trigger.option.deadline;
+          }
+
+          return triggerData;
+        }) || [
           {
             service_name: "",
             type: "persistent",
             host: "",
             path: "",
-            queue_type: "external.medium",
+            wq_type: DEFAULT_QUEUE_TYPE,
             max_retries: 3,
             retention: "168h",
             unique_ttl: "60s",
@@ -172,21 +190,35 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
       service_name: formData.service_name,
       repo_url: formData.repo_url,
       team_owner: formData.team_owner,
-      triggers: triggers.map((trigger) => ({
-        service_name: trigger.service_name,
-        type: trigger.type,
-        host: trigger.host,
-        path: trigger.path,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        option: {
-          queue_type: trigger.queue_type,
+      triggers: triggers.map((trigger) => {
+        const option: any = {
+          wq_type: trigger.wq_type,
           max_retries: trigger.max_retries,
           retention: trigger.retention,
           unique_ttl: trigger.unique_ttl,
-        },
-      })),
+        };
+
+        // Only include schedule_in if it has a value
+        if (trigger.schedule_in && trigger.schedule_in.trim() !== "") {
+          option.schedule_in = trigger.schedule_in;
+        }
+
+        // Only include deadline if it has a value
+        if (trigger.deadline !== undefined && trigger.deadline !== null && trigger.deadline !== "") {
+          option.deadline = trigger.deadline;
+        }
+
+        return {
+          service_name: trigger.service_name,
+          type: trigger.type,
+          host: trigger.host,
+          path: trigger.path,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          option,
+        };
+      }),
     };
   };
 
@@ -249,7 +281,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
             type: "persistent",
             host: "",
             path: "",
-            queue_type: "external.medium",
+            wq_type: DEFAULT_QUEUE_TYPE,
             max_retries: 3,
             retention: "168h",
             unique_ttl: "60s",
@@ -541,8 +573,8 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                             headers: {
                               "Content-Type": "application/json",
                             },
-                            option: {
-                              queue_type: "external.medium",
+                              option: {
+                              wq_type: DEFAULT_QUEUE_TYPE,
                               max_retries: 3,
                               retention: "168h",
                               unique_ttl: "60s",
@@ -641,24 +673,14 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                       Options
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-400 mb-1">
-                          Queue Type
-                        </label>
-                        <select
-                          name="queue_type"
-                          value={trigger.queue_type}
-                          onChange={(e) => handleTriggerChange(index, e)}
-                          className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="external.medium">
-                            external.medium
-                          </option>
-                          <option value="external.high">external.high</option>
-                          <option value="external.low">external.low</option>
-                          <option value="internal">internal</option>
-                        </select>
-                      </div>
+                      <QueueTypeSelect
+                        name="wq_type"
+                        value={trigger.wq_type}
+                        onChange={(e) => handleTriggerChange(index, e)}
+                        className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        label="Queue Type"
+                        labelClassName="text-xs font-medium text-gray-400 mb-1"
+                      />
                       <div>
                         <label className="block text-xs font-medium text-gray-400 mb-1">
                           Max Retries

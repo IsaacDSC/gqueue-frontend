@@ -20,7 +20,7 @@ export const Router: React.FC<RouterProps> = ({ routes, fallback: Fallback }) =>
     console.log('Router - Available routes:', routes.map(r => r.path));
   }, [currentPath, routes]);
 
-  // Encontra a rota que corresponde ao caminho atual
+  // Find the route that matches the current path
   const matchedRoute = routes.find(route => {
     console.log(`Comparing route "${route.path}" with current path "${currentPath}"`);
     return route.path === currentPath;
@@ -34,7 +34,7 @@ export const Router: React.FC<RouterProps> = ({ routes, fallback: Fallback }) =>
     return <Component />;
   }
 
-  // Se não encontrou rota e tem fallback, renderiza o fallback
+  // If no route was found and there's a fallback, render the fallback
   if (Fallback) {
     console.log('Router - Rendering fallback component');
     return <Fallback />;
@@ -46,10 +46,10 @@ export const Router: React.FC<RouterProps> = ({ routes, fallback: Fallback }) =>
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-gray-400 mb-4">Página não encontrada</p>
-        <p className="text-sm text-gray-500">Caminho atual: {currentPath}</p>
+        <p className="text-gray-400 mb-4">Page not found</p>
+        <p className="text-sm text-gray-500">Current path: {currentPath}</p>
         <div className="mt-4 text-sm text-gray-500">
-          <p>Rotas disponíveis:</p>
+          <p>Available routes:</p>
           <ul>
             {routes.map((route, index) => (
               <li key={index}>{route.path}</li>

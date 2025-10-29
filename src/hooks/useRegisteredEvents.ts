@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Event } from "../types";
+import { useConnectionConfig } from "./useConnectionConfig";
 
 interface UseRegisteredEventsReturn {
   events: Event[];
@@ -10,12 +11,11 @@ interface UseRegisteredEventsReturn {
   clearError: () => void;
 }
 
-const API_BASE_URL = "http://localhost:8080/api/v1";
-
 export const useRegisteredEvents = (): UseRegisteredEventsReturn => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { makeAuthenticatedRequest } = useConnectionConfig();
 
   const clearError = useCallback(() => {
     setError(null);
@@ -26,10 +26,9 @@ export const useRegisteredEvents = (): UseRegisteredEventsReturn => {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/events`, {
+      const response = await makeAuthenticatedRequest("/api/v1/events", {
         method: "GET",
         headers: {
-          "Content-Type": "application/json",
           Accept: "application/json",
         },
       });
@@ -42,7 +41,7 @@ export const useRegisteredEvents = (): UseRegisteredEventsReturn => {
 
       const data = await response.json();
 
-      // A API retorna diretamente um array de eventos
+      // The API returns an array of events directly
       if (Array.isArray(data)) {
         setEvents(data);
       } else {
@@ -50,20 +49,22 @@ export const useRegisteredEvents = (): UseRegisteredEventsReturn => {
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to fetch registered events";
+        err instanceof Error
+          ? err.message
+          : "Failed to fetch registered events";
       setError(errorMessage);
       console.error("Error fetching registered events:", err);
       setEvents([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [makeAuthenticatedRequest]);
 
   const refreshEvents = useCallback(() => {
     fetchEvents();
   }, [fetchEvents]);
 
-  // Buscar eventos automaticamente quando o hook é usado
+  // Fetch events automatically when the hook is used
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);

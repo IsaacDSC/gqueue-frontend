@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useConnectionConfig } from "./useConnectionConfig";
 
 export interface PublishEventData {
   service_name: string;
@@ -9,7 +10,7 @@ export interface PublishEventData {
   };
   opts: {
     max_retries: number;
-    queue_type: string;
+    wq_type: string;
   };
 }
 
@@ -23,12 +24,11 @@ export interface UseEventPublisherReturn {
   setError: (message: string) => void;
 }
 
-const API_BASE_URL = "http://localhost:8080/api/v1";
-
 export const useEventPublisher = (): UseEventPublisherReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { makeAuthenticatedRequest } = useConnectionConfig();
 
   const clearError = useCallback(() => {
     setError(null);
@@ -48,13 +48,13 @@ export const useEventPublisher = (): UseEventPublisherReturn => {
     setSuccess(false);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/event/publisher`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await makeAuthenticatedRequest(
+        "/api/v1/event/publisher",
+        {
+          method: "POST",
+          body: JSON.stringify(data),
         },
-        body: JSON.stringify(data),
-      });
+      );
 
       if (response.status === 202) {
         setSuccess(true);
@@ -62,6 +62,7 @@ export const useEventPublisher = (): UseEventPublisherReturn => {
         throw new Error(
           `Failed to publish event: ${response.status} ${response.statusText}`,
         );
+        return;
       }
     } catch (err) {
       const errorMessage =

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GQueue API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .container {
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        button:disabled {
+            background-color: #6b7280;
+            cursor: not-allowed;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 4px;
+            color: white;
+        }
+        .result {
+            background-color: #111827;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success {
+            border-left: 4px solid #10b981;
+        }
+        .error {
+            border-left: 4px solid #ef4444;
+        }
+        .warning {
+            border-left: 4px solid #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <h1>GQueue API Test Tool</h1>
+
+    <div class="container">
+        <h2>API Configuration</h2>
+        <label>API Base URL:</label>
+        <input type="text" id="apiBaseUrl" value="http://localhost:8080">
+        <button onclick="testConnection()">Test Connection</button>
+        <div id="connectionResult" class="result"></div>
+    </div>
+
+    <div class="container">
+        <h2>Create Event Test</h2>
+        <label>Event Data (JSON):</label>
+        <textarea id="eventData" rows="20">{
+  "name": "payment.processed",
+  "service_name": "my-app",
+  "repo_url": "http://github.com/my-org/my-repo",
+  "team_owner": "my-team",
+  "triggers": [
+    {
+      "service_name": "consumer-1",
+      "type": "persistent",
+      "host": "http://localhost:3333",
+      "path": "/wq/payment/processed",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "option": {
+        "queue_type": "external.medium",
+        "max_retries": 3,
+        "retention": "168h",
+        "unique_ttl": "60s"
+      }
+    }
+  ]
+}</textarea>
+        <button onclick="createEvent()">Create Event</button>
+        <button onclick="validateJson()">Validate JSON</button>
+        <div id="createResult" class="result"></div>
+    </div>
+
+    <div class="container">
+        <h2>Fetch Events Test</h2>
+        <button onclick="fetchEvents()">Fetch All Events</button>
+        <div id="fetchResult" class="result"></div>
+    </div>
+
+    <script>
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            element.textContent = `[${timestamp}] ${message}`;
+            element.className = `result ${type}`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function getApiUrl() {
+            return document.getElementById('apiBaseUrl').value.trim();
+        }
+
+        async function testConnection() {
+            const baseUrl = getApiUrl();
+            log('connectionResult', 'Testing connection...', 'warning');
+
+            const endpoints = [
+                '/health',
+                '/api/v1/health',
+                '/ping',
+                '/api/v1/events'
+            ];
+
+            for (const endpoint of endpoints) {
+                try {
+                    console.log(`Testing ${baseUrl}${endpoint}`);
+                    const response = await fetch(`${baseUrl}${endpoint}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        log('connectionResult', `✅ Connected successfully via ${endpoint} (${response.status})`, 'success');
+                        return;
+                    } else {
+                        console.log(`${endpoint} returned ${response.status}`);
+                    }
+                } catch (error) {
+                    console.log(`${endpoint} failed:`, error.message);
+                }
+            }
+
+            log('connectionResult', '❌ All connection attempts failed. Check if the API is running.', 'error');
+        }
+
+        function validateJson() {
+            const jsonData = document.getElementById('eventData').value;
+            try {
+                const parsed = JSON.parse(jsonData);
+                log('createResult', '✅ JSON is valid', 'success');
+                console.log('Parsed JSON:', parsed);
+                return true;
+            } catch (error) {
+                log('createResult', `❌ Invalid JSON: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        async function createEvent() {
+            if (!validateJson()) {
+                return;
+            }
+
+            const baseUrl = getApiUrl();
+            const jsonData = document.getElementById('eventData').value;
+
+            log('createResult', 'Creating event...', 'warning');
+
+            try {
+                const eventData = JSON.parse(jsonData);
+                console.log('Sending event data:', eventData);
+
+                const response = await fetch(`${baseUrl}/api/v1/event/consumer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(eventData)
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+
+                if (response.ok) {
+                    let responseData = null;
+                    if (responseText.trim()) {
+                        try {
+                            responseData = JSON.parse(responseText);
+                        } catch (e) {
+                            console.warn('Response is not JSON:', e);
+                        }
+                    }
+
+                    log('createResult',
+                        `✅ Event created successfully!\nStatus: ${response.status}\nResponse: ${responseText || 'No response body'}`,
+                        'success'
+                    );
+                } else {
+                    log('createResult',
+                        `❌ Failed to create event\nStatus: ${response.status} ${response.statusText}\nResponse: ${responseText}`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                log('createResult', `❌ Error: ${error.message}`, 'error');
+                console.error('Create event error:', error);
+            }
+        }
+
+        async function fetchEvents() {
+            const baseUrl = getApiUrl();
+            log('fetchResult', 'Fetching events...', 'warning');
+
+            try {
+                const response = await fetch(`${baseUrl}/api/v1/events`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                console.log('Fetch response status:', response.status);
+
+                const responseText = await response.text();
+                console.log('Fetch response text:', responseText);
+
+                if (response.ok) {
+                    if (responseText.trim()) {
+                        try {
+                            const events = JSON.parse(responseText);
+                            log('fetchResult',
+                                `✅ Events fetched successfully!\nCount: ${Array.isArray(events) ? events.length : 'Unknown'}\nData: ${JSON.stringify(events, null, 2)}`,
+                                'success'
+                            );
+                        } catch (e) {
+                            log('fetchResult',
+                                `✅ Response received but not JSON:\n${responseText}`,
+                                'warning'
+                            );
+                        }
+                    } else {
+                        log('fetchResult', '✅ Success but no data returned', 'warning');
+                    }
+                } else {
+                    log('fetchResult',
+                        `❌ Failed to fetch events\nStatus: ${response.status} ${response.statusText}\nResponse: ${responseText}`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                log('fetchResult', `❌ Error: ${error.message}`, 'error');
+                console.error('Fetch events error:', error);
+            }
+        }
+
+        // Auto-test connection on page load
+        window.addEventListener('load', () => {
+            setTimeout(testConnection, 500);
+        });
+    </script>
+</body>
+</html>

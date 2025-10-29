@@ -147,16 +147,16 @@ const QQueueDashboard: React.FC = () => {
     if (retention.includes("h")) {
       const hours = parseInt(retention.split("h")[0]);
       if (hours >= 24) {
-        return `${hours / 24} dias`;
+        return `${hours / 24} days`;
       }
-      return `${hours} horas`;
+      return `${hours} hours`;
     }
     return retention;
   };
 
   const formatDuration = (duration: string) => {
     if (duration.includes("m") && duration.includes("s")) {
-      return duration.replace("m", " min ").replace("s", " seg");
+      return duration.replace("m", " min ").replace("s", " sec");
     }
     return duration;
   };
@@ -357,7 +357,7 @@ const QQueueDashboard: React.FC = () => {
         {loading && events.length === 0 ? (
           <div className="bg-gray-700 rounded-lg p-6 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
-            <p className="text-gray-400">Carregando eventos...</p>
+            <p className="text-gray-400">Loading events...</p>
           </div>
         ) : error ? (
           <div className="bg-red-900 border border-red-700 rounded-lg p-6">
@@ -374,7 +374,7 @@ const QQueueDashboard: React.FC = () => {
                 />
               </svg>
               <span className="text-red-200 font-medium">
-                Erro ao carregar eventos
+                Error loading events
               </span>
             </div>
             <p className="text-red-300 text-sm mb-4">{error}</p>
@@ -382,7 +382,7 @@ const QQueueDashboard: React.FC = () => {
               onClick={handleRefresh}
               className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm"
             >
-              Tentar Novamente
+              Try Again
             </button>
           </div>
         ) : events.length === 0 ? (
@@ -401,7 +401,7 @@ const QQueueDashboard: React.FC = () => {
                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m0 0v5a2 2 0 002 2h8a2 2 0 002-2v-5m-6 0V9a2 2 0 00-2-2H8a2 2 0 00-2 2v4m4 0v2"
                 />
               </svg>
-              Nenhum evento registrado encontrado
+              No registered events found
             </div>
           </div>
         ) : (
@@ -495,7 +495,7 @@ const QQueueDashboard: React.FC = () => {
                   to="/events"
                   className="inline-block bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium"
                 >
-                  Ver todos os {events.length} eventos
+                  View all {events.length} events
                 </Link>
               </div>
             )}

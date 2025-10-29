@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useEventPublisher, PublishEventData } from "../hooks";
+import QueueTypeSelect from "./subComponents/QueueTypeSelect";
+import { DEFAULT_QUEUE_TYPE } from "../constants/queueTypes";
 
 interface PublishEventCardProps {
   className?: string;
@@ -24,7 +26,7 @@ const PublishEventCard: React.FC<PublishEventCardProps> = ({
     data_json: '{\n  "key": "value"\n}',
     correlation_id: "",
     max_retries: 3,
-    queue_type: "internal.high",
+    wq_type: DEFAULT_QUEUE_TYPE,
   });
 
   const generateCorrelationId = () => {
@@ -58,16 +60,16 @@ const PublishEventCard: React.FC<PublishEventCardProps> = ({
     try {
       // Validate required fields
       if (!formData.service_name.trim()) {
-        throw new Error("Nome do serviço é obrigatório");
+        throw new Error("Service name is required");
       }
       if (!formData.event_name.trim()) {
-        throw new Error("Nome do evento é obrigatório");
+        throw new Error("Event name is required");
       }
 
       // Validate JSON before parsing
       const trimmedJson = formData.data_json.trim();
       if (!trimmedJson) {
-        throw new Error("Dados do evento são obrigatórios");
+        throw new Error("Event data is required");
       }
 
       let parsedData;
@@ -75,7 +77,7 @@ const PublishEventCard: React.FC<PublishEventCardProps> = ({
         parsedData = JSON.parse(trimmedJson);
       } catch (jsonError) {
         throw new Error(
-          "JSON inválido. Verifique a sintaxe dos dados do evento.",
+          "Invalid JSON. Please check the event data syntax.",
         );
       }
 
@@ -91,7 +93,7 @@ const PublishEventCard: React.FC<PublishEventCardProps> = ({
         },
         opts: {
           max_retries: formData.max_retries,
-          queue_type: formData.queue_type,
+          wq_type: formData.wq_type,
         },
       };
 
@@ -121,7 +123,7 @@ const PublishEventCard: React.FC<PublishEventCardProps> = ({
       data_json: '{\n  "key": "value"\n}',
       correlation_id: "",
       max_retries: 3,
-      queue_type: "internal.high",
+      wq_type: DEFAULT_QUEUE_TYPE,
     });
     clearError();
     clearSuccess();
@@ -213,7 +215,7 @@ const PublishEventCard: React.FC<PublishEventCardProps> = ({
               value={formData.correlation_id}
               onChange={handleInputChange}
               className="dark-input flex-1"
-              placeholder="Será gerado automaticamente se vazio"
+              placeholder="Will be generated automatically if empty"
             />
             <button
               type="button"
@@ -245,46 +247,14 @@ const PublishEventCard: React.FC<PublishEventCardProps> = ({
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="queue_type"
-              className="block text-sm font-medium text-gray-300 mb-1"
-            >
-              Queue Type
-            </label>
-            <select
-              id="queue_type"
-              name="queue_type"
-              value={formData.queue_type}
-              onChange={handleInputChange}
-              className="dark-input"
-            >
-              <option value="internal.high" className="bg-gray-700 text-white">
-                internal.high
-              </option>
-              <option
-                value="internal.normal"
-                className="bg-gray-700 text-white"
-              >
-                internal.normal
-              </option>
-              <option value="internal.low" className="bg-gray-700 text-white">
-                internal.low
-              </option>
-              <option value="external.high" className="bg-gray-700 text-white">
-                external.high
-              </option>
-              <option
-                value="external.normal"
-                className="bg-gray-700 text-white"
-              >
-                external.normal
-              </option>
-              <option value="external.low" className="bg-gray-700 text-white">
-                external.low
-              </option>
-            </select>
-          </div>
+          <QueueTypeSelect
+            id="wq_type"
+            name="wq_type"
+            value={formData.wq_type}
+            onChange={handleInputChange}
+            className="dark-input"
+            label="Queue Type"
+          />
         </div>
 
         {error && (

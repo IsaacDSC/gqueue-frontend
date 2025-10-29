@@ -42,7 +42,7 @@ export const useConnection = (): UseConnectionReturn => {
         };
 
         if (config.authToken) {
-          headers["Authorization"] = `Bearer ${config.authToken}`;
+          headers["Authorization"] = `Basic ${config.authToken}`;
         }
 
         const response = await fetch(url, {
