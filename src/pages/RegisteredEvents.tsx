@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRegisteredEvents } from "../hooks/useRegisteredEvents";
 import { useDeleteEvent } from "../hooks/useDeleteEvent";
+import { useUpdateEvent } from "../hooks/useUpdateEvent";
 import { Link } from "../components/Link";
 import { Event } from "../types";
 
@@ -9,12 +10,17 @@ const RegisteredEvents: React.FC = () => {
     useRegisteredEvents();
   const { deleteEvent, loading: deleting, error: deleteError, clearError: clearDeleteError } =
     useDeleteEvent();
+  const { updateEvent, loading: updating, error: updateError, clearError: clearUpdateError } =
+    useUpdateEvent();
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showJsonModal, setShowJsonModal] = useState(false);
+  const [jsonText, setJsonText] = useState<string>("");
+  const [jsonError, setJsonError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterByState, setFilterByState] = useState<string>("all");
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
   const [deleteSuccessMessage, setDeleteSuccessMessage] = useState<string | null>(null);
+  const [updateSuccessMessage, setUpdateSuccessMessage] = useState<string | null>(null);
 
   // Filter events based on search term and state
   const filteredEvents = events.filter((event) => {
@@ -34,9 +40,43 @@ const RegisteredEvents: React.FC = () => {
     refreshEvents();
   };
 
-  const handleViewJson = (event: Event) => {
+  const handleEditJson = (event: Event) => {
     setSelectedEvent(event);
+    setJsonText(JSON.stringify(event, null, 2));
+    setJsonError(null);
     setShowJsonModal(true);
+  };
+
+  const handleCancelEdit = () => {
+    setShowJsonModal(false);
+    setSelectedEvent(null);
+    setJsonText("");
+    setJsonError(null);
+    clearUpdateError();
+  };
+
+  const handleSaveJson = async () => {
+    if (!selectedEvent || !selectedEvent.id) {
+      setJsonError("Event ID is missing");
+      return;
+    }
+
+    try {
+      const parsedData = JSON.parse(jsonText);
+      const success = await updateEvent(selectedEvent.id, parsedData);
+      
+      if (success) {
+        setUpdateSuccessMessage(`Event "${selectedEvent.name}" has been updated successfully!`);
+        handleCancelEdit();
+        refreshEvents();
+      }
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        setJsonError(`Invalid JSON: ${err.message}`);
+      } else {
+        setJsonError(err instanceof Error ? err.message : "Failed to parse JSON");
+      }
+    }
   };
 
   const handleDeleteClick = (event: Event) => {
@@ -67,7 +107,7 @@ const RegisteredEvents: React.FC = () => {
     setDeleteSuccessMessage(null);
   };
 
-  // Clear success message automatically after 5 seconds
+  // Clear success messages automatically after 5 seconds
   useEffect(() => {
     if (deleteSuccessMessage) {
       const timer = setTimeout(() => {
@@ -76,6 +116,19 @@ const RegisteredEvents: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [deleteSuccessMessage]);
+
+  useEffect(() => {
+    if (updateSuccessMessage) {
+      const timer = setTimeout(() => {
+        setUpdateSuccessMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [updateSuccessMessage]);
+
+  const clearUpdateSuccess = () => {
+    setUpdateSuccessMessage(null);
+  };
 
   const getStateColor = (state: string) => {
     switch (state) {
@@ -281,6 +334,74 @@ const RegisteredEvents: React.FC = () => {
         </div>
       )}
 
+      {/* Update Success Message */}
+      {updateSuccessMessage && (
+        <div className="bg-green-900 border border-green-700 rounded-lg p-4 mb-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5 text-green-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-green-200">{updateSuccessMessage}</span>
+            </div>
+            <button
+              onClick={clearUpdateSuccess}
+              className="text-green-400 hover:text-green-300"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Update Error Message */}
+      {updateError && (
+        <div className="bg-red-900 border border-red-700 rounded-lg p-4 mb-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-5 h-5 text-red-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-red-200">{updateError}</span>
+            </div>
+            <button
+              onClick={clearUpdateError}
+              className="text-red-400 hover:text-red-300"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filters and Search */}
       <div className="bg-gray-800 rounded-lg p-6 mb-6">
         <div className="flex flex-col lg:flex-row gap-4">
@@ -360,10 +481,10 @@ const RegisteredEvents: React.FC = () => {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleViewJson(event)}
+                    onClick={() => handleEditJson(event)}
                     className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm"
                   >
-                    View JSON
+                    Edit
                   </button>
                   {event.id && (
                     <button
@@ -483,16 +604,16 @@ const RegisteredEvents: React.FC = () => {
         )}
       </div>
 
-      {/* JSON Modal */}
+      {/* JSON Edit Modal */}
       {showJsonModal && selectedEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
+          <div className="bg-gray-800 rounded-lg max-w-7xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="flex justify-between items-center p-6 border-b border-gray-700">
-              <h3 className="text-lg font-semibold">
-                Event JSON: {selectedEvent.name}
+              <h3 className="text-xl font-semibold">
+                Edit Event JSON: {selectedEvent.name}
               </h3>
               <button
-                onClick={() => setShowJsonModal(false)}
+                onClick={handleCancelEdit}
                 className="text-gray-400 hover:text-white"
               >
                 <svg
@@ -510,12 +631,46 @@ const RegisteredEvents: React.FC = () => {
                 </svg>
               </button>
             </div>
-            <div className="p-6 overflow-auto max-h-[60vh]">
-              <pre className="bg-gray-900 p-4 rounded text-sm overflow-auto">
-                <code className="text-green-400">
-                  {JSON.stringify(selectedEvent, null, 2)}
-                </code>
-              </pre>
+            <div className="p-6 flex-1 overflow-hidden flex flex-col min-h-[500px]">
+              {jsonError && (
+                <div className="bg-red-900 border border-red-700 rounded-lg p-3 mb-4">
+                  <span className="text-red-200 text-sm">{jsonError}</span>
+                </div>
+              )}
+              {updateError && (
+                <div className="bg-red-900 border border-red-700 rounded-lg p-3 mb-4">
+                  <span className="text-red-200 text-sm">{updateError}</span>
+                </div>
+              )}
+              <textarea
+                value={jsonText}
+                onChange={(e) => {
+                  setJsonText(e.target.value);
+                  setJsonError(null);
+                  clearUpdateError();
+                }}
+                className="flex-1 w-full bg-gray-900 p-4 rounded text-sm text-green-400 font-mono resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                spellCheck={false}
+              />
+            </div>
+            <div className="flex justify-end gap-3 p-6 border-t border-gray-700">
+              <button
+                onClick={handleCancelEdit}
+                disabled={updating}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded text-sm font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveJson}
+                disabled={updating}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded text-sm font-medium flex items-center gap-2"
+              >
+                {updating && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {updating ? "Saving..." : "Save"}
+              </button>
             </div>
           </div>
         </div>
